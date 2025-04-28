@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { db } from "../../firebase"; // Adjust the import according to your file structure
+import { db } from "../../lib/firebase"; // Adjust the import according to your file structure
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 const EditAnimal = () => {

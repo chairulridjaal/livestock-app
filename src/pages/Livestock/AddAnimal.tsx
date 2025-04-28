@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../../firebase";  // Import Firestore db instance
+import { db } from "../../lib/firebase";  // Import Firestore db instance
 import { collection, setDoc, getDocs, doc } from "firebase/firestore";  // For adding new document and getting existing docs
 import { Timestamp } from "firebase/firestore"; // To handle date format
 
