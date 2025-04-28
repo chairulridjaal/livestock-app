@@ -1,132 +1,54 @@
-# 🐄 Livestock App — React + TypeScript + Firebase + Vite
+# React + TypeScript + Vite
 
-A modern livestock management dashboard built with Vite, React, TypeScript, and TailwindCSS.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-This project helps track animals, manage farms, and record daily activities—designed for simplicity, scalability, and collaboration.
+Currently, two official plugins are available:
 
----
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## ⚙️ Tech Stack
+## Expanding the ESLint configuration
 
-- **Framework**: [React.js](https://reactjs.org/)
-- **Database**: [Firebase Realtime Database](https://firebase.google.com/products/realtime-database)
-- **Authentication**: [Firebase Auth](https://firebase.google.com/products/auth)
-- **UI Library**: [shadcn/ui](https://ui.shadcn.com/)
-- **CSS Framework**: [TailwindCSS](https://tailwindcss.com/)
-- **Cloud Deployment**: [Vercel](https://vercel.com/)
-- **Document Generation**: [React PDF](https://react-pdf.org/)
-- **Graph Visualization**: [ApexCharts](https://apexcharts.com/)
-- **ORM**: _(optional / to be decided)_
-
----
-
-## 🛠️ Getting Started
-
-First, clone the repository:
-
-```bash
-git clone https://github.com/your-username/livestock-app.git
-cd livestock-app
-```
-
-Install dependencies:
-
-```bash
-npm install
-# or
-yarn
-```
-
-Start the development server:
-
-```bash
-npm run dev
-```
-
-The app will run at [http://localhost:5173](http://localhost:5173)
-
----
-
-## 🔐 Firebase Setup
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project
-3. Enable **Authentication** (Email/Password or other provider)
-4. Create a **Realtime Database** or **Firestore**, and configure access rules
-5. Copy your Firebase config and paste it into a `.env.local` file:
-
-```env
-VITE_FIREBASE_API_KEY=your-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-VITE_FIREBASE_APP_ID=your-app-id
-```
-
----
-
-## 🌍 Deployment
-
-This project is ready to deploy on **Vercel**.
-
-Click below to deploy:
-
-[![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/new)
-
----
-
-## 💡 Contributing
-
-1. Fork this repository
-2. Create a new branch:  
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. Make your changes ✨
-4. Commit and push:  
-   ```bash
-   git commit -m "Add your feature"
-   git push origin feature/your-feature-name
-   ```
-5. Open a Pull Request ✅
-
----
-
-## 🧪 Linting & Formatting
-
-Install recommended linting packages:
-
-```bash
-npm install -D eslint typescript @typescript-eslint/eslint-plugin @typescript-eslint/parser
-```
-
-Then configure ESLint using:
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
 ```js
-// eslint.config.js
-import tseslint from "typescript-eslint";
-
 export default tseslint.config({
   extends: [
+    // Remove ...tseslint.configs.recommended and replace with this
     ...tseslint.configs.recommendedTypeChecked,
+    // Alternatively, use this for stricter rules
+    ...tseslint.configs.strictTypeChecked,
+    // Optionally, add this for stylistic rules
     ...tseslint.configs.stylisticTypeChecked,
   ],
   languageOptions: {
+    // other options...
     parserOptions: {
-      project: ['./tsconfig.json'],
+      project: ['./tsconfig.node.json', './tsconfig.app.json'],
       tsconfigRootDir: import.meta.dirname,
     },
   },
-});
+})
 ```
 
----
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-## 📄 License
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-MIT License. Feel free to fork and build your own ✌️
-
----
-
-Made with 💙 by Kelompok 7.
+export default tseslint.config({
+  plugins: {
+    // Add the react-x and react-dom plugins
+    'react-x': reactX,
+    'react-dom': reactDom,
+  },
+  rules: {
+    // other rules...
+    // Enable its recommended typescript rules
+    ...reactX.configs['recommended-typescript'].rules,
+    ...reactDom.configs.recommended.rules,
+  },
+})
+```

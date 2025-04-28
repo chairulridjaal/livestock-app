@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../../lib/firebase";
 
 const MilkProductionChart = () => {
   const [seriesData, setSeriesData] = useState<number[]>([]);

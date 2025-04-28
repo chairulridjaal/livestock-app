@@ -1,9 +1,8 @@
 // src/utils/UploadCsv.tsx
 import { useState } from "react";
 import Papa from "papaparse";
-import { db } from "../firebase";
+import { db } from "../lib/firebase";
 import {
-  collection,
   setDoc,
   doc,
   Timestamp,

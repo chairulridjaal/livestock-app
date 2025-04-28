@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi"; // Optional: icons
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi"; 
 
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -25,7 +25,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   }, [location.pathname]);
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col border border-gray-300 bg-black">
       {/* Header */}
       <header className="flex justify-between items-center p-4 bg-white shadow">
         {/* Left section: logo and burger */}

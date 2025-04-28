@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebase";
-import MilkProductionChart from "./MilkProduction";
+import { db } from "../../lib/firebase";
+import MilkProductionChart from "./Cards/MilkProduction";
 
 function Dashboard() {
   const [animalCount, setAnimalCount] = useState(0);
   const [recentRecords, setRecentRecords] = useState<any[]>([]);
-  const [timeRange, setTimeRange] = useState<'week' | 'month' | '3months'>('week');
-
+  
   useEffect(() => {
     const fetchSummary = async () => {
       const animalsSnapshot = await getDocs(collection(db, "animals"));

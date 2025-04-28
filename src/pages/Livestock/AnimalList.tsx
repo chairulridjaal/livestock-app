@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "../../firebase"; // Adjust the import according to your file structure
+import { db } from "../../lib/firebase"; // Adjusted the import path to match the correct file structure
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { Link } from "react-router-dom";
 
