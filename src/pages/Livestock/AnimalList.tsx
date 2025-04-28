@@ -7,7 +7,7 @@ interface Animal {
   id: string;
   name: string;
   breed: string;
-  age: number;
+  dob: any; // The Firestore Timestamp for the date of birth
 }
 
 interface Record {
@@ -56,6 +56,21 @@ const AnimalList = () => {
     fetchAnimals();
   }, []);
 
+  // Function to calculate the age from dob
+  const calculateAge = (dob: string): number => {
+    const birthDate = new Date(dob); // Convert the dob string into a JavaScript Date object
+    const currentDate = new Date();
+    let age = currentDate.getFullYear() - birthDate.getFullYear();
+    const monthDifference = currentDate.getMonth() - birthDate.getMonth();
+    
+    // Adjust age if the birthday hasn't occurred yet this year
+    if (monthDifference < 0 || (monthDifference === 0 && currentDate.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age;
+  };  
+
   return (
     <div className="p-6 bg-gray-50">
       <h1 className="text-2xl font-bold mb-4">Animal List</h1>
@@ -77,7 +92,7 @@ const AnimalList = () => {
                 <td className="p-2 border-b">{animal.id}</td>
                 <td className="p-2 border-b">{animal.name}</td>
                 <td className="p-2 border-b">{animal.breed}</td>
-                <td className="p-2 border-b">{animal.age}</td>
+                <td className="p-2 border-b">{calculateAge(animal.dob)}</td>
                 <td className="p-2 border-b">
                   {lastRecordDates[animal.id] ? (
                     lastRecordDates[animal.id]
@@ -86,9 +101,9 @@ const AnimalList = () => {
                   )}
                 </td>
                 <td className="p-2 border-b">
-                <Link to={`/edit-animal/${animal.id}`} className="text-blue-600 hover:underline">
+                  <Link to={`/livestock/edit/${animal.id}`} className="text-blue-600 hover:underline">
                     Edit
-                </Link>
+                  </Link>
                 </td>
               </tr>
             ))
