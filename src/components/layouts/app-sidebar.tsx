@@ -30,7 +30,6 @@ const data = {
       url: "/",
       items: [
         { title: "Dashboard", url: "/", isActive: false },
-        { title: "Analytics", url: "/Analytics", isActive: false },
         { title: "Analytics", url: "/analytics", isActive: false },
         { title: "Farm", url: "/farm", isActive: false },
       ],
