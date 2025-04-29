@@ -176,7 +176,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
           </form>
 
           <div className="w-1/2 hidden md:block">
-            <img src="public/cow-login.jpg" alt="Login Illustration" className="w-full h-full object-cover" />
+            <img src="cow-login.jpg" alt="Login Illustration" className="w-full h-full object-cover" />
           </div>
         </CardContent>
       </Card>
