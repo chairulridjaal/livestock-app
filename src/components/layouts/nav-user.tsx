@@ -4,9 +4,7 @@ import {
   BadgeCheck,
   Bell,
   ChevronsUpDown,
-  CreditCard,
   LogOut,
-  Sparkles,
 } from "lucide-react"
 
 import {
@@ -91,7 +89,17 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+              fetch('/api/logout', { method: 'POST' })
+                .then(() => {
+                window.location.href = '/login';
+                })
+                .catch((error) => {
+                console.error('Logout failed:', error);
+                });
+              }}
+            >
               <LogOut />
               Log out
             </DropdownMenuItem>

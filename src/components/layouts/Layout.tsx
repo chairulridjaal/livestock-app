@@ -16,6 +16,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { useLocation } from "react-router-dom"
+import { ModeToggle } from "@/components/mode-toggle"
 
 interface LayoutProps {
   children?:  ReactNode
@@ -64,6 +65,7 @@ export default function Layout({ children }: LayoutProps) {
               })}
             </BreadcrumbList>
           </Breadcrumb>
+          <div className="ml-auto" />          <ModeToggle />
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
           {children}

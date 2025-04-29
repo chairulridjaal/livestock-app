@@ -1,17 +1,34 @@
+// src/pages/AnimalList.tsx
 import { useEffect, useState } from "react";
-import { db } from "../../lib/firebase"; // Adjusted the import path to match the correct file structure
+import { db } from "../../lib/firebase";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { Link } from "react-router-dom";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Animal {
   id: string;
   name: string;
   breed: string;
-  dob: any; // The Firestore Timestamp for the date of birth
+  dob: any;
 }
 
 interface Record {
-  date: any;  // The Firestore Timestamp
+  date: any;
   weight: number;
   health: string;
   feed: number;
@@ -21,7 +38,8 @@ interface Record {
 
 const AnimalList = () => {
   const [animals, setAnimals] = useState<Animal[]>([]);
-  const [lastRecordDates, setLastRecordDates] = useState<{ [key: string]: string }>({}); // To store the last record date for each animal
+  const [lastRecordDates, setLastRecordDates] = useState<{ [key: string]: string }>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnimals = async () => {
@@ -29,19 +47,18 @@ const AnimalList = () => {
         const animalsCollection = collection(db, "animals");
         const snapshot = await getDocs(animalsCollection);
         const animalList = snapshot.docs.map((doc) => ({
-          id: doc.id, // Assuming Firestore document ID is the animal's unique ID
+          id: doc.id,
           ...doc.data(),
         })) as Animal[];
         setAnimals(animalList);
 
-        // Fetch the most recent record for each animal
         for (let animal of animalList) {
           const recordsCollection = collection(db, "animals", animal.id, "records");
           const recordsQuery = query(recordsCollection, orderBy("date", "desc"), limit(1));
           const recordSnapshot = await getDocs(recordsQuery);
           if (!recordSnapshot.empty) {
             const lastRecord = recordSnapshot.docs[0].data() as Record;
-            const lastRecordedDate = lastRecord.date.toDate().toLocaleDateString(); // Convert Firestore Timestamp to Date string
+            const lastRecordedDate = lastRecord.date.toDate().toLocaleDateString();
             setLastRecordDates((prev) => ({
               ...prev,
               [animal.id]: lastRecordedDate,
@@ -50,72 +67,85 @@ const AnimalList = () => {
         }
       } catch (error) {
         console.error("Error fetching animals: ", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchAnimals();
   }, []);
 
-  // Function to calculate the age from dob
   const calculateAge = (dob: string): number => {
-    const birthDate = new Date(dob); // Convert the dob string into a JavaScript Date object
+    const birthDate = new Date(dob);
     const currentDate = new Date();
     let age = currentDate.getFullYear() - birthDate.getFullYear();
     const monthDifference = currentDate.getMonth() - birthDate.getMonth();
-    
-    // Adjust age if the birthday hasn't occurred yet this year
     if (monthDifference < 0 || (monthDifference === 0 && currentDate.getDate() < birthDate.getDate())) {
       age--;
     }
-    
     return age;
-  };  
+  };
 
   return (
-    <div className="p-6 bg-gray-50">
-      <h1 className="text-2xl font-bold mb-4">Animal List</h1>
-      <table className="min-w-full border-collapse border border-gray-200">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 border-b text-left">ID</th>
-            <th className="p-2 border-b text-left">Name</th>
-            <th className="p-2 border-b text-left">Breed</th>
-            <th className="p-2 border-b text-left">Age</th>
-            <th className="p-2 border-b text-left">Last Recorded</th>
-            <th className="p-2 border-b text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {animals.length > 0 ? (
-            animals.map((animal) => (
-              <tr key={animal.id}>
-                <td className="p-2 border-b">{animal.id}</td>
-                <td className="p-2 border-b">{animal.name}</td>
-                <td className="p-2 border-b">{animal.breed}</td>
-                <td className="p-2 border-b">{calculateAge(animal.dob)}</td>
-                <td className="p-2 border-b">
-                  {lastRecordDates[animal.id] ? (
-                    lastRecordDates[animal.id]
-                  ) : (
-                    <span>No records yet</span>
-                  )}
-                </td>
-                <td className="p-2 border-b">
-                  <Link to={`/livestock/edit/${animal.id}`} className="text-blue-600 hover:underline">
-                    Edit
-                  </Link>
-                </td>
-              </tr>
-            ))
+    <div className="p-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">Animal List</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          {loading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
           ) : (
-            <tr>
-              <td colSpan={6} className="p-2 text-center text-gray-500">
-                No animals found.
-              </td>
-            </tr>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Breed</TableHead>
+                  <TableHead>Age</TableHead>
+                  <TableHead>Last Recorded</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {animals.length > 0 ? (
+                  animals.map((animal) => (
+                    <TableRow key={animal.id}>
+                      <TableCell>{animal.id}</TableCell>
+                      <TableCell>{animal.name}</TableCell>
+                      <TableCell>{animal.breed}</TableCell>
+                      <TableCell>{calculateAge(animal.dob)}</TableCell>
+                      <TableCell>
+                        {lastRecordDates[animal.id] ? (
+                          lastRecordDates[animal.id]
+                        ) : (
+                          <span className="text-gray-400">No records yet</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Button asChild variant="link" className="p-0 h-auto">
+                          <Link to={`/livestock/edit/${animal.id}`}>Edit</Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      No animals found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           )}
-        </tbody>
-      </table>
+        </CardContent>
+      </Card>
     </div>
   );
 };

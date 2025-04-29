@@ -1,74 +1,81 @@
-import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../lib/firebase";
-import MilkProductionChart from "./Cards/MilkProduction";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input"; // Shadcn UI Input
+import { Link } from "react-router-dom";
 
-function Dashboard() {
-  const [animalCount, setAnimalCount] = useState(0);
-  const [recentRecords, setRecentRecords] = useState<any[]>([]);
-  
-  useEffect(() => {
-    const fetchSummary = async () => {
-      const animalsSnapshot = await getDocs(collection(db, "animals"));
-      const animalDocs = animalsSnapshot.docs;
-      setAnimalCount(animalDocs.length);
+const Dashboard = () => {
+  const [searchQuery, setSearchQuery] = useState("");
 
-      let allRecentRecords: any[] = [];
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
 
-      for (const animal of animalDocs) {
-        const recordsSnapshot = await getDocs(collection(db, "animals", animal.id, "records"));
-        const records = recordsSnapshot.docs.map(doc => {
-          const data = doc.data();
-          return { id: animal.id, date: data.date, weight: data.weight };
-        });
+  const dashboardItems = [
+    {
+      title: "Analytics",
+      description: "See analytics and reports of your farm.",
+      icon: "📈",
+      link: "/analytics",
+    },
+    {
+      title: "Livestock Management",
+      description: "Manage all your livestock efficiently.",
+      icon: "🐄",
+      link: "/livestock",
+    },
+    {
+      title: "Farm Inventory",
+      description: "Track and manage farm stock supplies.",
+      icon: "🌾",
+      link: "/farm",
+    },
+    {
+      title: "Settings",
+      description: "Update farm profile and preferences.",
+      icon: "⚙️",
+      link: "/settings",
+    },
+  ];
 
-        if (records.length > 0) {
-          const latest = records.sort((a, b) => b.date?.seconds - a.date?.seconds)[0];
-          allRecentRecords.push({ ...latest, animalId: animal.id });
-        }
-      }
-
-      allRecentRecords.sort((a, b) => b.date?.seconds - a.date?.seconds);
-      setRecentRecords(allRecentRecords.slice(0, 5));
-    };
-
-    fetchSummary();
-  }, []);
+  // Filter dashboard items based on search query
+  const filteredItems = dashboardItems.filter(item =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
-      <div className="space-y-6">
-        {/* Stats Grid - full width */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white shadow p-4 rounded">
-            <p className="text-sm text-gray-600">Total Animals</p>
-            <p className="text-2xl font-bold">{animalCount}</p>
-          </div>
-          {/* You can add more stat cards here if needed */}
-        </div>
-
-        {/* Smaller Milk Chart box below */}
-        <div className="max-w-lg"> {/* max-w-sm = 24rem (1/3 width) */}
-          <div className="bg-white shadow p-4 rounded">
-            <MilkProductionChart />
-          </div>
-        </div>
+    <div className="p-6">
+      {/* Search Bar */}
+      <div className="mb-6 flex justify-center">
+        <Input
+          placeholder="Search Dashboard..."
+          value={searchQuery}
+          onChange={handleSearch}
+          className="w-96 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
       </div>
 
-      <div className="bg-white shadow p-4 rounded mt-4">
-        <h2 className="text-xl font-semibold mb-2">Recent Records</h2>
-        <ul className="divide-y">
-          {recentRecords.map((record, index) => (
-            <li key={index} className="py-2">
-              🐄 <strong>{record.animalId}</strong> | Weight: {record.weight}kg | Date:{" "}
-              {record.date?.toDate().toLocaleDateString()}
-            </li>
-          ))}
-        </ul>
+      {/* Dashboard Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {filteredItems.map((item, index) => (
+          <Link key={index} to={item.link} className="w-full">
+            <Card className="hover:scale-105 transition-transform transform hover:shadow-xl">
+              <CardHeader>
+                <div className="flex justify-center items-center mb-4">
+                  <span className="text-4xl text-blue-600">{item.icon}</span>
+                </div>
+                <CardTitle>{item.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  {item.description}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
     </div>
   );
-}
+};
 
 export default Dashboard;

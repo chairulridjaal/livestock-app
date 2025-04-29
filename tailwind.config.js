@@ -73,6 +73,14 @@ module.exports = {
   			}
   		},
   		keyframes: {
+			'collapsible-down': {
+				from: { height: '0' },
+				to: { height: 'var(--radix-collapsible-content-height)' },
+				},
+			'collapsible-up': {
+			from: { height: 'var(--radix-collapsible-content-height)' },
+			to: { height: '0' },
+			},	
   			'accordion-down': {
   				from: {
   					height: '0'
@@ -91,6 +99,8 @@ module.exports = {
   			}
   		},
   		animation: {
+			'collapsible-down': 'collapsible-down 200ms ease-out',
+			'collapsible-up': 'collapsible-up 200ms ease-out',
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		}

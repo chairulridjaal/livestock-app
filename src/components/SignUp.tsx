@@ -5,23 +5,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { useAuth } from '../contexts/AuthContext'
 
 // Define validation schema using Zod
@@ -69,112 +56,89 @@ export default function SignUp() {
   }
 
   return (
-    <div className="flex min-h-[60vh] h-full w-full items-center justify-center px-4">
-      <Card className="mx-auto max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl">Register</CardTitle>
-          <CardDescription>
-            Create a new account by filling out the form below.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid gap-4">
+    <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted px-6 md:px-10">
+      <div className="w-full max-w-sm md:max-w-3xl mx-auto">
+        <Card className="overflow-hidden">
+          <CardContent className="flex p-0">
+            <div className="w-1/2 hidden md:block">
+              <img src="public/cow-login.jpg" alt="Login Illustration" className="w-full h-full object-cover" />
+            </div>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="p-6 md:p-8 flex flex-col gap-6 w-1/2"
+            >
+              <div className="flex flex-col items-center text-center">
+                <h1 className="text-2xl font-bold">Create Account</h1>
+                <p className="text-sm text-muted-foreground">
+                  Create a new account by filling out the form.
+                </p>
+              </div>
+
+              <div className="grid gap-2">
                 {/* Name Field */}
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem className="grid gap-2">
-                      <FormLabel htmlFor="name">Full Name</FormLabel>
-                      <FormControl>
-                        <Input id="name" placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <Label htmlFor="name">Full Name</Label>
+                <Input id="name" placeholder="John Doe" {...form.register('name')} />
+                {form.formState.errors.name && (
+                  <p className="text-xs text-red-500">{form.formState.errors.name.message}</p>
+                )}
+              </div>
 
+              <div className="grid gap-2">
                 {/* Email Field */}
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem className="grid gap-2">
-                      <FormLabel htmlFor="email">Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="email"
-                          placeholder="johndoe@mail.com"
-                          type="email"
-                          autoComplete="email"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  {...form.register('email')}
                 />
+                {form.formState.errors.email && (
+                  <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
+                )}
+              </div>
 
+              <div className="grid gap-2">
                 {/* Password Field */}
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem className="grid gap-2">
-                      <FormLabel htmlFor="password">Password</FormLabel>
-                      <FormControl>
-                        <Input
-                          id="password"
-                          type="password"
-                          placeholder="******"
-                          autoComplete="current-password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••"
+                  {...form.register('password')}
                 />
+                {form.formState.errors.password && (
+                  <p className="text-xs text-red-500">{form.formState.errors.password.message}</p>
+                )}
+              </div>
 
+              <div className="grid gap-2">
                 {/* Confirm Password Field */}
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem className="grid gap-2">
-                      <FormLabel htmlFor="confirmPassword">
-                        Confirm Password
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          id="confirmPassword"
-                          type="password"
-                          placeholder="******"
-                          autoComplete="new-password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="••••••"
+                  {...form.register('confirmPassword')}
                 />
+                {form.formState.errors.confirmPassword && (
+                  <p className="text-xs text-red-500">{form.formState.errors.confirmPassword.message}</p>
+                )}
+              </div>
 
-                <Button type="submit" className="w-full">
-                  Register
-                </Button>
+              <Button type="submit" className="w-full">
+                Register
+              </Button>
+
+              <div className="text-center text-sm">
+                Already have an account?{' '}
+                <Link to="/login" className="underline">
+                  Login
+                </Link>
               </div>
             </form>
-          </Form>
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
-            <Link to="/login" className="underline">
-              Login
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

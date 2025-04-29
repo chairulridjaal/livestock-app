@@ -1,12 +1,12 @@
 // src/pages/FarmStats.tsx
 import { useEffect, useState } from "react";
 import { db } from "../../lib/firebase";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-} from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
 
 export default function FarmStats() {
   const [stats, setStats] = useState({
@@ -20,15 +20,21 @@ export default function FarmStats() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const snap = await getDoc(farmRef);
-      if (snap.exists()) {
-        const data = snap.data();
-        setStats({
-          totalMilk: data.totalMilk || 0,
-          totalFeed: data.totalFeed || 0,
-        });
+      try {
+        const snap = await getDoc(farmRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          setStats({
+            totalMilk: data.totalMilk || 0,
+            totalFeed: data.totalFeed || 0,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+        setStatus("❌ Failed to fetch stats.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchStats();
@@ -48,49 +54,66 @@ export default function FarmStats() {
         ...stats,
         lastUpdated: serverTimestamp(),
       });
-      setStatus("✅ Stats updated!");
+      setStatus("✅ Stats updated successfully!");
     } catch (error) {
       console.error("Update failed:", error);
-      setStatus("❌ Update failed.");
+      setStatus("❌ Update failed. Try again.");
     }
   };
 
-  if (loading) return <p className="p-4">Loading stats...</p>;
+  if (loading) {
+    return (
+      <div className="max-w-md mx-auto p-6">
+        <Skeleton className="h-8 w-40 mb-6" />
+        <Skeleton className="h-12 w-full mb-4" />
+        <Skeleton className="h-12 w-full mb-6" />
+        <Skeleton className="h-10 w-32" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white shadow rounded mt-6 space-y-4">
-      <h2 className="text-2xl font-bold">Edit Farm Stats</h2>
+    <div className="max-w-md mx-auto p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Farm Stats</CardTitle>
+        </CardHeader>
 
-      <label className="block">
-        <span>Total Milk (L)</span>
-        <input
-          type="number"
-          name="totalMilk"
-          value={stats.totalMilk}
-          onChange={handleChange}
-          className="w-full border mt-1 p-2 rounded"
-        />
-      </label>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="totalMilk">Total Milk (L)</Label>
+            <Input
+              id="totalMilk"
+              type="number"
+              name="totalMilk"
+              value={stats.totalMilk}
+              onChange={handleChange}
+              placeholder="Enter total milk produced"
+            />
+          </div>
 
-      <label className="block">
-        <span>Total Feed (Kg)</span>
-        <input
-          type="number"
-          name="totalFeed"
-          value={stats.totalFeed}
-          onChange={handleChange}
-          className="w-full border mt-1 p-2 rounded"
-        />
-      </label>
+          <div>
+            <Label htmlFor="totalFeed">Total Feed (Kg)</Label>
+            <Input
+              id="totalFeed"
+              type="number"
+              name="totalFeed"
+              value={stats.totalFeed}
+              onChange={handleChange}
+              placeholder="Enter total feed available"
+            />
+          </div>
+        </CardContent>
 
-      <button
-        onClick={handleSave}
-        className="px-4 py-2 bg-green-600 text-white rounded"
-      >
-        Save
-      </button>
-
-      <p className="text-sm text-gray-600">{status}</p>
+        <CardFooter className="flex flex-col items-start space-y-4">
+          <Button onClick={handleSave} className="w-full">
+            Save Stats
+          </Button>
+          {status && (
+            <p className="text-sm text-muted-foreground">{status}</p>
+          )}
+        </CardFooter>
+      </Card>
     </div>
   );
 }

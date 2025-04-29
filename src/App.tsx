@@ -1,6 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
+import { ThemeProvider } from "./components/theme-provider";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import Analytics from "./pages/Dashboard/Analytics"; // Adjusted to match the correct file path
 import Record from "./pages/Livestock/Record";
 import AddAnimal from "./pages/Livestock/AddAnimal";
 import AnimalList from "./pages/Livestock/AnimalList";
@@ -12,7 +14,8 @@ import Login from "./components/Login";
 import Logout from "./components/Logout";
 import SignUp from "./components/SignUp";
 import Layout from "./components/layouts/Layout";
-import NotFound from "./components/NotFound";
+import NotFound from "./components/404";
+
 
 function App() {
   const { user, isAuthChecked } = useAuth(); // Get the user state from AuthContext
@@ -23,6 +26,7 @@ function App() {
   }
 
   return (
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
     <Routes>
       {/* For the home/dashboard route, only render Layout if the user is logged in */}
       <Route path="/dashboard" element={user ? <Layout><Dashboard /></Layout> : <Login />} />
@@ -35,6 +39,7 @@ function App() {
       
       {/* All other routes require authentication */}
       <Route path="/livestock" element={user ? <Layout><Livestock /></Layout> : <Login />} />
+      <Route path="/analytics" element={user ? <Layout><Analytics /></Layout> : <Login />} />
       <Route path="/livestock/record" element={user ? <Layout><Record /></Layout> : <Login />} />
       <Route path="/livestock/add" element={user ? <Layout><AddAnimal /></Layout> : <Login />} />
       <Route path="/livestock/list" element={user ? <Layout><AnimalList /></Layout> : <Login />} />
@@ -45,6 +50,7 @@ function App() {
       {/* Catch-all route for 404 page */}
       <Route path="*" element={<NotFound/>} />
     </Routes>
+    </ThemeProvider>
   );
 }
 
