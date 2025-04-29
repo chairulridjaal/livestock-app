@@ -23,7 +23,7 @@ const NotFound = () => {
       <div className="text-center">
         <div className="mb-8">
           <div className="flex justify-center items-center">
-            <img src="public/sadcow.webp" alt="404 cow" className="w-48 h-auto object-contain" />
+            <img src="/sadcow.webp" alt="404 cow" className="w-48 h-auto object-contain" />
           </div>
           <h1 className="text-8xl font-black text-red-600">404</h1>
           <p className="text-xl text-gray-700 mt-4">Oops! The page you were looking for doesn't exist.</p>
