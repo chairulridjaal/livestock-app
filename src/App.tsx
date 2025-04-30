@@ -22,7 +22,11 @@ function App() {
 
   // Show a loading spinner or screen until Firebase determines the auth state
   if (!isAuthChecked) {
-    return null; // Or just render nothing or a very basic loading indicator (not a full page spinner)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="loader"> Loading.. </div>
+      </div>
+    );
   }
 
   return (

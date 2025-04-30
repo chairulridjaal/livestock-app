@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs} from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import MilkProductionChart from "./Cards/MilkProduction";
-
+import AnimalCount from "./Cards/animalCount"; 
+import FeedCount from "./Cards/feedCount";
+import MilkCount from "./Cards/milkCount"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // using shadcn Card
 import { Separator } from "@/components/ui/separator"; // optional for clean divider
 import { Badge } from "@/components/ui/badge"; // optional to show weight nicely
 import { CalendarDays } from "lucide-react"; // simple Heroicon (calendar)
 
 function Dashboard() {
-  const [animalCount, setAnimalCount] = useState(0);
   const [recentRecords, setRecentRecords] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchSummary = async () => {
       const animalsSnapshot = await getDocs(collection(db, "animals"));
       const animalDocs = animalsSnapshot.docs;
-      setAnimalCount(animalDocs.length);
 
       let allRecentRecords: any[] = [];
 
@@ -45,30 +45,14 @@ function Dashboard() {
       <h1 className="text-3xl font-bold">Analytics</h1>
 
       {/* Stats Section */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">Total Animals</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{animalCount}</p>
-          </CardContent>
-        </Card>
-        {/* Add more cards if needed */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <AnimalCount />
+        <FeedCount />
+        <MilkCount />
       </div>
 
       {/* Milk Production Chart */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-        <Card>
-          <CardContent className="mt-4">
-            <MilkProductionChart />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="mt-4">
-            <MilkProductionChart />
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 gap-2">
         <Card>
           <CardContent className="mt-4">
             <MilkProductionChart />
