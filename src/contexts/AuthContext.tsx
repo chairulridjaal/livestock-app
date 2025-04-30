@@ -11,7 +11,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (email: string, password: string) => Promise<UserCredential>;
-  setUser: React.Dispatch<React.SetStateAction<{ name: string | null; email: string | null; avatar: string | null; } | null>>;  
+  setUser: React.Dispatch<React.SetStateAction<{ name: string | null; email: string | null; avatar: string | null; } | null>>;
   isAuthChecked: boolean;
 }
 
@@ -28,15 +28,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           name: firebaseUser.displayName,
           email: firebaseUser.email,
           avatar: firebaseUser.photoURL || '/default-avatar.jpg', // fallback to a default avatar
-        }
-        setUser(userData)
-        setIsAuthChecked(true); // Once we have the auth state, set the flag to true
+        };
+        setUser(userData);
+      } else {
+        setUser(null);
       }
-      else 
-      {
-        setUser(null);    
-        }
-      });
+      setIsAuthChecked(true); // ✅ Set to true regardless of whether the user is logged in or not
+    });
 
     return unsubscribe;
   }, []);
