@@ -93,7 +93,7 @@ export function NavUser({
               onClick={() => {
               fetch('/api/logout', { method: 'POST' })
                 .then(() => {
-                window.location.href = '/login';
+                window.location.href = '/logout';
                 })
                 .catch((error) => {
                 console.error('Logout failed:', error);
