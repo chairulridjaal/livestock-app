@@ -104,8 +104,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
           <form onSubmit={handleSubmit(onSubmit)} className="p-6 md:p-8 flex flex-col gap-6 w-1/2">
             <div className="flex flex-col items-center text-center">
               <h1 className="text-2xl font-bold">Welcome back</h1>
-              <p className="text-balance text-muted-foreground">
-                Login to your AgriVault account
+              <p className="text-sm text-muted-foreground">
+              Login to your AgriVault account
               </p>
             </div>
 

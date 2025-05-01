@@ -15,6 +15,7 @@ import Logout from "./components/Logout";
 import SignUp from "./components/SignUp";
 import Layout from "./components/layouts/Layout";
 import NotFound from "./components/404";
+import ScanPage from "./pages/scanpage"; // Adjusted to match the correct file path
 
 
 function App() {
@@ -23,9 +24,14 @@ function App() {
   // Show a loading spinner or screen until Firebase determines the auth state
   if (!isAuthChecked) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="loader"> Loading.. </div>
-      </div>
+      <div className="flex flex-col items-center justify-center h-screen bg-white">
+      <img
+        src="/happy-cow.webp" // or wherever your image is
+        alt="Loading..."
+        className="w-32 h-32 animate-spin-fast"
+      />
+      <p className="mt-4 text-lg text-muted-foreground">Moo-ving things into place...</p>
+    </div>
     );
   }
 
@@ -42,11 +48,13 @@ function App() {
       <Route path="/logout" element={<Logout />} />
       
       {/* All other routes require authentication */}
+      <Route path="/scan" element={user ? <Layout><ScanPage /></Layout> : <Login />} />
       <Route path="/livestock" element={user ? <Layout><Livestock /></Layout> : <Login />} />
       <Route path="/analytics" element={user ? <Layout><Analytics /></Layout> : <Login />} />
       <Route path="/livestock/record" element={user ? <Layout><Record /></Layout> : <Login />} />
       <Route path="/livestock/add" element={user ? <Layout><AddAnimal /></Layout> : <Login />} />
       <Route path="/livestock/list" element={user ? <Layout><AnimalList /></Layout> : <Login />} />
+      <Route path="/livestock/edit" element={user ? <Layout><AnimalList /></Layout> : <Login />} />
       <Route path="/livestock/edit/:animalId" element={user ? <Layout><EditAnimal /></Layout> : <Login />} />
       <Route path="/seed" element={user ? <Layout><UploadCsv /></Layout> : <Login />} />
       <Route path="/farm" element={user ? <Layout><FarmStats /></Layout> : <Login />} />

@@ -1,14 +1,35 @@
-// src/pages/AnimalList.tsx
+import React from "react";
 import { useEffect, useState } from "react";
 import { db } from "../../lib/firebase";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { Link } from "react-router-dom";
+import { format } from "date-fns";
+import { collection, getDocs, query, orderBy, limit, Timestamp } from "firebase/firestore";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table"
+import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableBody,
@@ -34,6 +55,168 @@ interface Record {
   feed: number;
   milk: number | null;
   notes: string;
+}
+
+export const columns: ColumnDef<Animal>[] = [
+  {
+    accessorKey: "id",
+    header: ({ column }) => (
+      <div
+        className="flex items-center justify-center space-x-2 text-center"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        <span>#ID</span>
+        <ArrowUpDown className="h-4 w-4" />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-center">
+        {row.getValue("id")}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "name",
+    header: () => (
+      <div className="text-center">Name</div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-center">
+        {row.getValue("name")}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "breed",
+    header: () => (
+      <div className="text-center">Breed</div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-center">
+        {row.getValue("breed")}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "dob",
+    header: () => (
+      <div className="flex items-center justify-center space-x-2 text-center">
+        <span>Date of Birth</span>
+      </div>
+    ),
+    cell: ({ row }) => {
+      const date = row.getValue("dob") as Timestamp | undefined;
+      return (
+        <div className="text-center">
+          {date && date.toDate ? new Date(date.toDate()).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          }) : "-"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "lastRecorded",
+    header: ({ column }) => (
+      <div
+        className="flex items-center justify-center space-x-2 text-center"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        <span>Last Recorded</span>
+        <ArrowUpDown className="h-4 w-4" />
+      </div>
+    ),
+    cell: ({ row }) => {
+      const date = row.getValue("lastRecorded");
+      return (
+        <div className="text-center">
+          {date === "N/A" ? "N/A" : new Date(date as string | number | Date).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          })}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "actions",
+    header: "",
+    cell: ({ row }) => {
+      const recordId = row.getValue("id");
+      return (
+        <div className="text-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => window.location.href = `/livestock/edit/${recordId}`}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.location.href = `/livestock/record/${recordId}`}>Record</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    },
+  },
+];
+
+export function AnimalListTable( { data }: { data: Animal[] }) {
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      columnFilters,
+      sorting,
+      columnVisibility,
+    },
+    onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+  })
+
+  return (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map(headerGroup => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map(header => (
+                <TableHead key={header.id} colSpan={header.colSpan}>
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map(row => (
+            <TableRow key={row.id}>
+              {row.getVisibleCells().map(cell => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
 }
 
 const AnimalList = () => {
@@ -87,7 +270,7 @@ const AnimalList = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="container mx-auto p-2">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Animal List</CardTitle>
@@ -101,48 +284,7 @@ const AnimalList = () => {
               <Skeleton className="h-8 w-full" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Breed</TableHead>
-                  <TableHead>Age</TableHead>
-                  <TableHead>Last Recorded</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {animals.length > 0 ? (
-                  animals.map((animal) => (
-                    <TableRow key={animal.id}>
-                      <TableCell>{animal.id}</TableCell>
-                      <TableCell>{animal.name}</TableCell>
-                      <TableCell>{animal.breed}</TableCell>
-                      <TableCell>{calculateAge(animal.dob)}</TableCell>
-                      <TableCell>
-                        {lastRecordDates[animal.id] ? (
-                          lastRecordDates[animal.id]
-                        ) : (
-                          <span className="text-gray-400">No records yet</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Button asChild variant="link" className="p-0 h-auto">
-                          <Link to={`/livestock/edit/${animal.id}`}>Edit</Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      No animals found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <AnimalListTable data={animals.map(animal => ({ ...animal, lastRecorded: lastRecordDates[animal.id] || "N/A" }))} />
           )}
         </CardContent>
       </Card>
