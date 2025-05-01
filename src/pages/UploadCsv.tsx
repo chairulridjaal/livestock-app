@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Papa from "papaparse";
 import { db } from "../lib/firebase";
+import { uploadDummyStats } from "@/dummyUploader";
 import {
   setDoc,
   doc,
@@ -24,7 +25,7 @@ interface CowRecord {
 
 export default function UploadCsv() {
   const [status, setStatus] = useState("");
-
+  uploadDummyStats(); // Call the function to upload dummy stats
   const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;

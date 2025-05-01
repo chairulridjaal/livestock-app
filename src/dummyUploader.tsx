@@ -1,71 +1,58 @@
 import { collection, doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase"; // Adjust this to match your Firebase config import
+import { Timestamp } from "firebase/firestore";
 
 const dummyStats = {
-  "2024-11": {
-    totalFeed: 1000,
-    totalMilk: 800,
-    livestockCount: 20,
-    averageWeight: 310,
-    healthIssues: 1,
-    mortality: 0,
-    timestamp: new Date("2024-11-01T00:00:00Z").getTime(), // Adding timestamp
+  "cow-001": {
+    name: "Bessie",
+    breed: "Holstein",
+    type: "Dairy Cattle",
+    dob: Timestamp.fromDate(new Date("2019-03-15T00:00:00")),
+    notes: "Healthy and active",
   },
-  "2024-12": {
-    totalFeed: 1150,
-    totalMilk: 900,
-    livestockCount: 20,
-    averageWeight: 315,
-    healthIssues: 2,
-    mortality: 0,
-    timestamp: new Date("2024-12-01T00:00:00Z").getTime(), // Adding timestamp
+  "cow-002": {
+    name: "Daisy",
+    breed: "Jersey",
+    type: "Dairy Cattle",
+    dob: Timestamp.fromDate(new Date("2018-07-22T00:00:00")),
+    notes: "Calm and friendly",
   },
-  "2025-01": {
-    totalFeed: 1100,
-    totalMilk: 950,
-    livestockCount: 22,
-    averageWeight: 320,
-    healthIssues: 1,
-    mortality: 0,
-    timestamp: new Date("2025-01-01T00:00:00Z").getTime(), // Adding timestamp
+  "cow-003": {
+    name: "Buttercup",
+    breed: "Charolais",
+    type: "Beef Cattle",
+    dob: Timestamp.fromDate(new Date("2017-11-05T00:00:00")),
+    notes: "Strong and energetic",
   },
-  "2025-02": {
-    totalFeed: 1200,
-    totalMilk: 970,
-    livestockCount: 23,
-    averageWeight: 322,
-    healthIssues: 1,
-    mortality: 0,
-    timestamp: new Date("2025-02-01T00:00:00Z").getTime(), // Adding timestamp
+  "cow-004": {
+    name: "Molly",
+    breed: "Limousin",
+    type: "Beef Cattle",
+    dob: Timestamp.fromDate(new Date("2016-06-18T00:00:00")),
+    notes: "Gentle and hardy",
   },
-  "2025-03": {
-    totalFeed: 1300,
-    totalMilk: 990,
-    livestockCount: 23,
-    averageWeight: 325,
-    healthIssues: 0,
-    mortality: 0,
-    timestamp: new Date("2025-03-01T00:00:00Z").getTime(), // Adding timestamp
+  "cow-005": {
+    name: "Rosie",
+    breed: "Friesian",
+    type: "Dairy Cattle",
+    dob: Timestamp.fromDate(new Date("2019-01-10T00:00:00")),
+    notes: "Produces high-quality milk",
   },
-  "2025-04": {
-    totalFeed: 1250,
-    totalMilk: 1020,
-    livestockCount: 24,
-    averageWeight: 330,
-    healthIssues: 1,
-    mortality: 1,
-    timestamp: new Date("2025-04-01T00:00:00Z").getTime(), // Adding timestamp
+  "cow-006": {
+    name: "Luna",
+    breed: "Persia",
+    type: "Dual-purpose",
+    dob: Timestamp.fromDate(new Date("2018-09-30T00:00:00")),
+    notes: "Adaptable and versatile",
   },
 };
 
 export async function uploadDummyStats() {
-  const recordsRef = collection(db, "farm", "stats", "records");
-
   try {
-    for (const [month, data] of Object.entries(dummyStats)) {
-      const docRef = doc(recordsRef, month);
-      await setDoc(docRef, data);
-      console.log(`Uploaded stats for ${month}`);
+    for (const [animalId, data] of Object.entries(dummyStats)) {
+      const recordsRef = doc(db, "animals", animalId);
+      await setDoc(recordsRef, data);
+      console.log(`Uploaded stats for ${animalId}`);
     }
     console.log("All dummy records uploaded!");
   } catch (error) {
