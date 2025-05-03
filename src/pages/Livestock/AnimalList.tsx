@@ -1,7 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { db } from "../../lib/firebase";
-import { format } from "date-fns";
 import { collection, getDocs, query, orderBy, limit, Timestamp } from "firebase/firestore";
 import {
   Card,
@@ -258,24 +257,13 @@ const AnimalList = () => {
     fetchAnimals();
   }, []);
 
-  const calculateAge = (dob: string): number => {
-    const birthDate = new Date(dob);
-    const currentDate = new Date();
-    let age = currentDate.getFullYear() - birthDate.getFullYear();
-    const monthDifference = currentDate.getMonth() - birthDate.getMonth();
-    if (monthDifference < 0 || (monthDifference === 0 && currentDate.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
   return (
     <div className="container mx-auto p-2">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-3xl font-bold">Animal List</h1>
+        <Button variant="default" onClick={() => window.location.href = "/livestock/add"}>Add Animal</Button>
+      </div>
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Animal List</CardTitle>
-        </CardHeader>
-
         <CardContent>
           {loading ? (
             <div className="space-y-4">

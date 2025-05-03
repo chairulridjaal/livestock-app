@@ -7,7 +7,6 @@ import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
 
 const FeedCount = () => {
   const [totalFeed, setTotalFeed] = useState(0);
-  const [previousFeed, setPreviousFeed] = useState(0);
   const [trendPercent, setTrendPercent] = useState(0);
   const [isUp, setIsUp] = useState(true);
 
@@ -28,7 +27,6 @@ const FeedCount = () => {
 
           if (data.length === 2) {
             const previous = data[1]?.totalFeed || 0;
-            setPreviousFeed(previous);
 
             const diff = current - previous;
             const percentChange = previous !== 0 ? ((diff / previous) * 100).toFixed(1) : 0;

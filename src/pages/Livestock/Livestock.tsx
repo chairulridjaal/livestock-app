@@ -18,16 +18,16 @@ const Livestock = () => {
       link: "/livestock/list",
     },
     {
-      title: "Adding New Livestock",
-      description: "Add new livestock to your farm's inventory.",
-      icon: "➕",
-      link: "/livestock/add",
-    },
-    {
       title: "Daily Record",
       description: "Record daily livestock activities and status.",
       icon: "📝",
       link: "/livestock/record",
+    },
+    {
+      title: "Adding New Livestock",
+      description: "Add new livestock to your farm's inventory.",
+      icon: "➕",
+      link: "/livestock/add",
     },
   ];
 

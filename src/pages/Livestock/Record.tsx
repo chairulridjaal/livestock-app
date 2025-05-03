@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import { QRScanner } from "@/components/QRScanner";
 import { useCallback } from "react";
-import {addToast, ToastProvider} from "@heroui/toast";
+import {addToast } from "@heroui/toast";
 import {
   collection,
   setDoc,

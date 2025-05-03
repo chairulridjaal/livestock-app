@@ -43,7 +43,7 @@ const MilkCount = () => {
   return (
     <Card className="@container/card">
       <CardHeader className="relative">
-        <CardDescription>Total Milk</CardDescription>
+        <CardDescription>Total Milk Produced</CardDescription>
         <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
           {totalMilk} Litre
         </CardTitle>

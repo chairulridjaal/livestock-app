@@ -24,14 +24,18 @@ function App() {
   // Show a loading spinner or screen until Firebase determines the auth state
   if (!isAuthChecked) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-white">
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <div className="flex flex-col items-center justify-center h-screen bg-white dark:bg-black">
       <img
-        src="/happy-cow.webp" // or wherever your image is
+        src="/happy-cow.webp"
         alt="Loading..."
         className="w-32 h-32 animate-spin-fast"
       />
-      <p className="mt-4 text-lg text-muted-foreground">Moo-ving things into place...</p>
-    </div>
+      <p className="mt-4 text-lg text-muted-foreground dark:text-gray-300">
+        Moo-ving things into place...
+      </p>
+      </div>
+    </ThemeProvider>
     );
   }
 
