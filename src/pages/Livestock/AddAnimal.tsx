@@ -35,22 +35,45 @@ function AddAnimal() {
 
   const handleDownloadPNG = () => {
     const qrCodeElement = document.getElementById("qrcode");
-
+    const padding = 40; // adjust the padding size as needed
+  
     if (qrCodeElement) {
       html2canvas(qrCodeElement).then((canvas) => {
-        // Convert the canvas to a Data URL (PNG format)
-        const imageUrl = canvas.toDataURL("image/png");
-
+        const paddedCanvas = document.createElement("canvas");
+        paddedCanvas.width = canvas.width + padding * 2;
+        paddedCanvas.height = canvas.height + padding   * 2;
+  
+        const ctx = paddedCanvas.getContext("2d");
+  
+        if (ctx) {
+          // Fill background with white
+          ctx.fillStyle = "white";
+          ctx.fillRect(0, 0, paddedCanvas.width, paddedCanvas.height);
+  
+          // Draw original canvas onto padded canvas
+          ctx.drawImage(canvas, padding, padding);
+        } else {
+          console.error("Failed to get 2D context for the canvas.");
+          return;
+        }
+  
+        // Draw original canvas onto padded canvas
+        ctx.drawImage(canvas, padding, padding);
+  
+        // Convert padded canvas to PNG
+        const imageUrl = paddedCanvas.toDataURL("image/png");
+  
         // Create a download link
         const link = document.createElement("a");
         link.href = imageUrl;
-        link.download = `${id}-qrcode.png`; // Set the download file name
+        link.download = `${id}-qrcode.png`;
         link.click();
-        setIsDownloaded(true)
+  
+        setIsDownloaded(true);
       });
     }
   };
-
+  
   useEffect(() => {
     const fetchAnimalIds = async () => {
       try {
