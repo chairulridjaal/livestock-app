@@ -104,66 +104,66 @@ export const columns: ColumnDef<Records>[] = [
           {weight as number} kg
         </div>
       );
-      },
-      },
-      {
-        accessorKey: "feed",
-        header: () => (
-          <div
-            className="flex items-center justify-center space-x-2"
-          >
-            <span>Feed</span>
-          </div>
-        ),
-        cell: ({ row }) => {
-          const feed = row.getValue("feed");
-          return (
-            <div className="text-center">
-              {feed ? `${feed} kg` : "-"}
-            </div>
-          )
-          },
-          },
-          {
-            accessorKey: "milk",
-            header: () => (
-              <div
-                className="flex items-center justify-center space-x-2"
-              >
-                <span>Milk</span>
-              </div>
-            ),
-            cell: ({ row }) => {
-              const milk = row.getValue("milk");         
-              return (
-                <div className="text-center">
-                  {milk ? `${milk} L` : "-"}
-                </div>
-              );
-            },
-          },
-          {
-          accessorKey: "health",
-          header: () => (
-          <div
-            className="flex items-center justify-center space-x-2"
-          >
-            <span>Health</span>
-          </div>
-        ),
-        cell: ({ row }) => {
-          const health: string | undefined = row.getValue("health");
-          return (
-            <div className="text-center">
-              {health ? health : "-"}
-            </div>
-          );
-        },
-      },
-      {
-      accessorKey: "actions",
-      header: "",
-      cell: ({ row }) => {
+    },
+  },
+  {
+    accessorKey: "feed",
+    header: () => (
+      <div
+        className="flex items-center justify-center space-x-2"
+      >
+        <span>Feed</span>
+      </div>
+    ),
+    cell: ({ row }) => {
+      const feed = row.getValue("feed");
+      return (
+        <div className="text-center">
+          {feed ? `${feed} kg` : "-"}
+        </div>
+      )
+    },
+  },
+  {
+    accessorKey: "milk",
+    header: () => (
+      <div
+        className="flex items-center justify-center space-x-2"
+      >
+        <span>Milk</span>
+      </div>
+    ),
+    cell: ({ row }) => {
+      const milk = row.getValue("milk");
+      return (
+        <div className="text-center">
+          {milk ? `${milk} L` : "-"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "health",
+    header: () => (
+      <div
+        className="flex items-center justify-center space-x-2"
+      >
+        <span>Health</span>
+      </div>
+    ),
+    cell: ({ row }) => {
+      const health: string | undefined = row.getValue("health");
+      return (
+        <div className="text-center">
+          {health ? health : "-"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "actions",
+    header: "",
+    cell: ({ row }) => {
       const recordId = row.getValue("weight") as string;
       return (
         <DropdownMenu>
@@ -381,7 +381,7 @@ const EditAnimal = () => {
                 </Select>
               </div>
 
-              
+
               <div>
                 <Label htmlFor="breed">Type</Label>
                 <Select value={type} onValueChange={setType}>
@@ -389,19 +389,19 @@ const EditAnimal = () => {
                     <SelectValue placeholder="Select Type" />
                   </SelectTrigger>
                   <SelectContent>
-                      <SelectItem value="Dairy Cattle">
-                        <span className="text-sm">Dairy Cattle</span>
-                      </SelectItem>
-                      <SelectItem value="Beef Cattle">
-                        <span className="text-sm">Beef Cattle</span>
-                      </SelectItem>
+                    <SelectItem value="Dairy Cattle">
+                      <span className="text-sm">Dairy Cattle</span>
+                    </SelectItem>
+                    <SelectItem value="Beef Cattle">
+                      <span className="text-sm">Beef Cattle</span>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2 w-full">
                 <Label htmlFor="dob">Date of Birth</Label>
-                  <Popover>
+                <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       id="dob"

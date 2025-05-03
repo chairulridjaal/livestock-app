@@ -8,6 +8,6 @@ export default function Providers({children}: {children: ReactNode}) {
     <HeroUIProvider>
       <ToastProvider />
       {children}
-    </HeroUIProvider>
+    </HeroUIProvider> 
   )
 }

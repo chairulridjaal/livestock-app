@@ -1,4 +1,4 @@
-import { collection, doc, setDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase"; // Adjust this to match your Firebase config import
 import { Timestamp } from "firebase/firestore";
 

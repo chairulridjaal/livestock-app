@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { addToast } from "@heroui/toast"
 
 function AddAnimal() {
 
@@ -16,7 +17,7 @@ function AddAnimal() {
   const [id, setId] = useState("")
   const [type, setType] = useState("")
   const [error, setError] = useState("")
-  const [breeds, setBreeds] = useState<string[]>([]); // State for breeds
+  const [breeds, setBreeds] = useState<string[]>([]); 
   
   const fetchBreeds = async () => {
     try {
@@ -84,7 +85,11 @@ function AddAnimal() {
         dob: Timestamp.fromDate(formattedDOB),
       })
 
-      alert("New animal added!")
+      addToast({
+        title: "Animal Added",
+        description: `Animal ${name} has been added successfully.`,
+        color: "success",
+      })
 
       setName("")
       setBreed("")
