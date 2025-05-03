@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { format } from "date-fns"
+import { add, format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
 import { db } from "../../lib/firebase";
@@ -47,6 +47,16 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { addToast } from "@heroui/toast";
+import { 
+  Alert,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+ } from "@heroui/react";
 
 export type Records = {
   id: string
@@ -58,7 +68,7 @@ export type Records = {
   notes: string
 }
 
-export const columns: ColumnDef<Records>[] = [
+export const createColumns = (navigate: ReturnType<typeof useNavigate>, animalId: string): ColumnDef<Records>[] => [
   {
     accessorKey: "index",
     header: "#",
@@ -104,67 +114,69 @@ export const columns: ColumnDef<Records>[] = [
           {weight as number} kg
         </div>
       );
-    },
-  },
-  {
-    accessorKey: "feed",
-    header: () => (
-      <div
-        className="flex items-center justify-center space-x-2"
-      >
-        <span>Feed</span>
-      </div>
-    ),
-    cell: ({ row }) => {
-      const feed = row.getValue("feed");
-      return (
-        <div className="text-center">
-          {feed ? `${feed} kg` : "-"}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "milk",
-    header: () => (
-      <div
-        className="flex items-center justify-center space-x-2"
-      >
-        <span>Milk</span>
-      </div>
-    ),
-    cell: ({ row }) => {
-      const milk = row.getValue("milk");
-      return (
-        <div className="text-center">
-          {milk ? `${milk} L` : "-"}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "health",
-    header: () => (
-      <div
-        className="flex items-center justify-center space-x-2"
-      >
-        <span>Health</span>
-      </div>
-    ),
-    cell: ({ row }) => {
-      const health: string | undefined = row.getValue("health");
-      return (
-        <div className="text-center">
-          {health ? health : "-"}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "actions",
-    header: "",
-    cell: ({ row }) => {
-      const recordId = row.getValue("weight") as string;
+      },
+      },
+      {
+        accessorKey: "feed",
+        header: () => (
+          <div
+            className="flex items-center justify-center space-x-2"
+          >
+            <span>Feed</span>
+          </div>
+        ),
+        cell: ({ row }) => {
+          const feed = row.getValue("feed");
+          return (
+            <div className="text-center">
+              {feed ? `${feed} kg` : "-"}
+            </div>
+          )
+          },
+          },
+          {
+            accessorKey: "milk",
+            header: () => (
+              <div
+                className="flex items-center justify-center space-x-2"
+              >
+                <span>Milk</span>
+              </div>
+            ),
+            cell: ({ row }) => {
+              const milk = row.getValue("milk");         
+              return (
+                <div className="text-center">
+                  {milk ? `${milk} L` : "-"}
+                </div>
+              );
+            },
+          },
+          {
+          accessorKey: "health",
+          header: () => (
+          <div
+            className="flex items-center justify-center space-x-2"
+          >
+            <span>Health</span>
+          </div>
+        ),
+        cell: ({ row }) => {
+          const health: string | undefined = row.getValue("health");
+          return (
+            <div className="text-center">
+              {health ? health : "-"}
+            </div>
+          );
+        },
+      },
+      {
+      accessorKey: "actions",
+      header: "",
+      cell: ({ row }) => {
+      const recordId = row.getValue("date") instanceof Timestamp
+        ? format((row.getValue("date") as Timestamp).toDate(), "yyyy-MM-dd")
+        : row.getValue("date") as string;
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -175,7 +187,7 @@ export const columns: ColumnDef<Records>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => console.log(`Edit record ${recordId}`)}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate(`/livestock/edit/${animalId}/${recordId}`)}>Edit</DropdownMenuItem>
             <DropdownMenuItem onClick={() => console.log(`Delete record ${recordId}`)}>Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -184,14 +196,14 @@ export const columns: ColumnDef<Records>[] = [
   },
 ]
 
-export function RecordsTable({ data }: { data: Records[] }) {
+export function RecordsTable({ data, animalId, navigate }: { data: Records[]; animalId: string; navigate: ReturnType<typeof useNavigate> }) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
 
   const table = useReactTable({
     data,
-    columns,
+    columns: createColumns(navigate, animalId),
     state: {
       columnFilters,
       sorting,
@@ -239,7 +251,6 @@ export function RecordsTable({ data }: { data: Records[] }) {
 const EditAnimal = () => {
   const { animalId } = useParams(); // URL param
   const navigate = useNavigate();
-
   const [name, setName] = useState("");
   const [breed, setBreed] = useState("");
   const [dob, setDob] = useState<Timestamp | null>(null);
@@ -247,7 +258,8 @@ const EditAnimal = () => {
   const [type, setType] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);
-  const [breeds, setBreeds] = useState<string[]>([]); // State for breeds
+  const [breeds, setBreeds] = useState<string[]>([]);
+  const [isOpen, setIsOpen] = useState(false); // State for modal open/close
 
   useEffect(() => {
     const fetchAnimalData = async () => {
@@ -301,8 +313,9 @@ const EditAnimal = () => {
     e.preventDefault();
 
     if (!name || !breed || !dob) {
-      alert("Please fill out all fields.");
-      return;
+      return (
+        <Alert color="warning" title="Missing Fields" description="Please fill in all required fields." />
+      );
     }
 
     try {
@@ -315,27 +328,51 @@ const EditAnimal = () => {
         type,
       });
 
-      alert("Animal updated successfully!");
+      addToast({
+        title: "Animal Updated",
+        description: `Animal ${name} has been updated successfully.`,
+        color: "success",
+      });
       navigate("/livestock/edit/" + animalId);
     } catch (error) {
       console.error("Error updating animal:", error);
-      alert("Failed to update animal.");
+      addToast({
+        title: "Error",
+        description: "Failed to update animal.",
+        color: "danger",
+      });
     }
   };
 
-  const handleDelete = async () => {
-    const confirmDelete = confirm("Are you sure you want to delete this animal?");
-    if (!confirmDelete) return;
-
+  const handleDelete = async () => {  
     try {
+      // Delete all records of the animal
+      const recordsRef = collection(db, "animals", animalId as string, "records");
+      const recordsSnapshot = await getDocs(recordsRef);
+  
+      for (const recordDoc of recordsSnapshot.docs) {
+        await deleteDoc(doc(db, "animals", animalId as string, "records", recordDoc.id));
+      }
+  
+      // Delete the animal document
       await deleteDoc(doc(db, "animals", animalId as string));
-      alert("Animal deleted successfully!");
-      navigate("/livestock/edit/" + animalId);
+  
+      addToast({
+        title: "Animal Deleted",
+        description: `Animal ${name} and all its records have been deleted successfully.`,
+        color: "success",
+      });
+  
+      navigate("/livestock/list");
     } catch (error) {
       console.error("Error deleting animal:", error);
-      alert("Failed to delete animal.");
+      addToast({
+        title: "Error",
+        description: "Failed to delete animal.",
+        color: "danger",
+      });
     }
-  };
+  };  
 
   return (
     <div className="container mx-auto p-2">
@@ -445,16 +482,42 @@ const EditAnimal = () => {
               </div>
 
               <div className="flex justify-between mt-6">
-                <Button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                <Button type="submit" className="bg-blue-600 text-white hover:bg-blue-700">
                   Save Changes
                 </Button>
                 <Button
                   type="button"
-                  onClick={handleDelete}
-                  className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700"
+                  onClick={() => setIsOpen(true)}
+                  className="bg-red-600 text-white hover:bg-red-700"
                 >
                   Delete Animal
                 </Button>
+
+                <Modal backdrop="opaque" isOpen={isOpen} onClose={() => setIsOpen(false)}>
+                <ModalContent>
+                  {(onClose) => (
+                    <>
+                      <ModalHeader className="flex flex-col gap-1">Confirm Deletion</ModalHeader>
+                      <ModalBody>
+                        <p>
+                        Are you sure you want to delete <strong>{name} / {animalId} </strong> and all of its records?
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          This action cannot be undone.
+                        </p>
+                      </ModalBody>
+                      <ModalFooter>
+                        <Button variant="secondary" onClick={onClose}>
+                          Cancel
+                        </Button>
+                        <Button className="text-red-600 hover:text-red-600" variant="ghost" onClick={() => { handleDelete(); onClose(); }}>
+                          Yes, Delete
+                        </Button>
+                      </ModalFooter>
+                    </>
+                  )}
+                </ModalContent>
+              </Modal>
               </div>
             </form>
           </CardContent>
@@ -469,7 +532,7 @@ const EditAnimal = () => {
               <div>Loading health records...</div>
             ) : (
               <div className="overflow-x-auto">
-                <RecordsTable data={records} />
+                <RecordsTable data={records} animalId={animalId as string} navigate={navigate} />
               </div>
             )}
           </CardContent>
