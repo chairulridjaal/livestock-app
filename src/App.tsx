@@ -15,32 +15,21 @@ import Logout from "./components/Logout";
 import SignUp from "./components/SignUp";
 import Layout from "./components/layouts/Layout";
 import NotFound from "./components/404";
-import ScanPage from "./pages/scanpage"; // Adjusted to match the correct file path
+import ScanPage from "./pages/scanpage"; 
+import EditRecord from "./pages/Livestock/EditRecord";
 
 
 function App() {
   const { user, isAuthChecked } = useAuth(); // Get the user state from AuthContext
 
-  // Show a loading spinner or screen until Firebase determines the auth state
-  if (!isAuthChecked) {
-    return (
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      <div className="flex flex-col items-center justify-center h-screen bg-white dark:bg-black">
-      <img
-        src="/happy-cow.webp"
-        alt="Loading..."
-        className="w-32 h-32 animate-spin-fast"
-      />
-      <p className="mt-4 text-lg text-muted-foreground dark:text-gray-300">
-        Moo-ving things into place...
-      </p>
-      </div>
-    </ThemeProvider>
-    );
-  }
-
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      {!isAuthChecked ? (
+      <div className="flex flex-col items-center justify-center h-screen bg-background">
+        <img src="/happy-cow.webp" alt="Loading..." className="w-32 h-32 animate-spin-fast" />
+        <p className="mt-4 text-lg text-muted-foreground">Moo-ving things into place...</p>
+      </div>
+      ) : (
     <Routes>
       {/* For the home/dashboard route, only render Layout if the user is logged in */}
       <Route path="/dashboard" element={user ? <Layout><Dashboard /></Layout> : <Login />} />
@@ -60,12 +49,14 @@ function App() {
       <Route path="/livestock/list" element={user ? <Layout><AnimalList /></Layout> : <Login />} />
       <Route path="/livestock/edit" element={user ? <Layout><AnimalList /></Layout> : <Login />} />
       <Route path="/livestock/edit/:animalId" element={user ? <Layout><EditAnimal /></Layout> : <Login />} />
+      <Route path="/livestock/edit/:animalId/:recordId" element={user ? <Layout><EditRecord /></Layout> : <Login />} />
       <Route path="/seed" element={user ? <Layout><UploadCsv /></Layout> : <Login />} />
       <Route path="/farm" element={user ? <Layout><FarmStats /></Layout> : <Login />} />
       
       {/* Catch-all route for 404 page */}
       <Route path="*" element={<NotFound/>} />
     </Routes>
+      )}
     </ThemeProvider>
   );
 }

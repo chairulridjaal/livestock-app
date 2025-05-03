@@ -19,10 +19,15 @@ const NotFound = () => {
   }, [countdown, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-black">
+    <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="text-center">
         <div className="mb-8">
           <div className="flex justify-center items-center">
+            <img
+              src="/sadcow.webp"
+              alt="404 cow"
+              className="w-48 h-auto object-contain"
+            />
             <img
               src="/sadcow.webp"
               alt="404 cow"
@@ -36,12 +41,12 @@ const NotFound = () => {
             Oops! The page you were looking for doesn't exist.
           </p>
           <p className="text-gray-500 dark:text-gray-400 mt-4">
-            Redirecting you back to home in{' '}
+            Redirecting you back to home in{" "}
             <span className="font-semibold">{countdown}</span> seconds...
           </p>
           <Button
             className="mt-6"
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
             variant="bordered"
             size="lg"
           >
@@ -51,6 +56,6 @@ const NotFound = () => {
       </div>
     </div>
   );
-};
+}
 
 export default NotFound;

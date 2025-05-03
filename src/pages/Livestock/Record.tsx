@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { db } from "../../lib/firebase";
 import { QRScanner } from "@/components/QRScanner";
 import { useCallback } from "react";
-import {addToast } from "@heroui/toast";
+import {addToast} from "@heroui/toast";
 import {
   collection,
   setDoc,
@@ -121,9 +122,12 @@ function Record() {
         totalFeed: increment(-Number(feed)),
         lastUpdated: serverTimestamp(),
       });
-
-      alert("Record saved to Firebase!");
-
+      addToast({
+        title: "Record Saved",
+        description: `Record for animal ${animalId} has been saved successfully.`,
+        color: "success",
+      }); 
+      
       setAnimalId("");
       setWeight("");
       setHealth("");

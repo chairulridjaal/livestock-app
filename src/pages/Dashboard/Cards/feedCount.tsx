@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, limit, getDocs, getDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
+import { set } from "date-fns";
 
 const FeedCount = () => {
   const [totalFeed, setTotalFeed] = useState(0);
+  const [totalCurrentFeed, setTotalCurrentFeed] = useState(0);
+  const [previousFeed, setPreviousFeed] = useState(0);
   const [trendPercent, setTrendPercent] = useState(0);
   const [isUp, setIsUp] = useState(true);
 
@@ -14,6 +17,15 @@ const FeedCount = () => {
     const fetchFeedStats = async () => {
       try {
         const recordsRef = collection(db, "farm", "stats", "records");
+        const currentFeedRef = doc(db,"farm", "stats");
+
+        const snapshot = await getDoc(currentFeedRef);
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+          setTotalCurrentFeed(data.totalFeed || 0);
+        } else {
+          console.log("No such document!");
+        }
 
         // Query to fetch the two most recent records (current and previous)
         const q = query(recordsRef, orderBy("timestamp", "desc"), limit(2));
@@ -63,7 +75,7 @@ const FeedCount = () => {
           {isUp ? <TrendingUpIcon className="size-4" /> : <TrendingDownIcon className="size-4" />}
         </div>
         <div className="text-muted-foreground">
-          Feed count (current vs. previous)
+          Feed count (current vs. previous): Stock is at <strong>{totalCurrentFeed}</strong> Kg
         </div>
       </CardFooter>
     </Card>
