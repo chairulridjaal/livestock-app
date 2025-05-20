@@ -270,7 +270,7 @@ const EditAnimal = () => {
 
       try {
         // Fetch breeds from Firestore (farm/information/breeds collection)
-        const breedsCollection = collection(db, "farm", "information", "breeds");
+        const breedsCollection = collection(db, "farm", "farm-001", "meta", "information", "breeds");
         const breedsSnapshot = await getDocs(breedsCollection);
         const breedList = breedsSnapshot.docs.map(doc => doc.data().name); // Assuming breed name is stored in the "name" field
         setBreeds(breedList); // Set the breeds state

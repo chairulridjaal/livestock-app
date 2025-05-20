@@ -24,16 +24,10 @@ const Dashboard = () => {
       link: "/livestock",
     },
     {
-      title: "Farm Inventory",
+      title: "Farm Settings",
       description: "Track and manage farm stock supplies.",
       icon: "🌾",
       link: "/farm",
-    },
-    {
-      title: "Settings",
-      description: "Update farm profile and preferences.",
-      icon: "⚙️",
-      link: "/settings",
     },
   ];
 

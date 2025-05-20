@@ -86,7 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <Tractor className="size-6" />
           </div>
           <div className="flex flex-col gap-0.5 leading-none">
-            <span className="font-bold">4Cow Inc.</span>
+            <span className="font-bold">FarmHub Inc.</span>
           </div>
         </SidebarMenuButton>
 
