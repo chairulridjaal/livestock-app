@@ -10,7 +10,6 @@ import { addToast } from "@heroui/toast"
 import { Download } from "lucide-react"
 import QRcode from "react-qr-code"
 import html2canvas from "html2canvas"
-import { Alert } from "@heroui/react"
 
 function AddAnimal() {
   const [name, setName] = useState("")

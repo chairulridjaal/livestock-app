@@ -14,7 +14,7 @@ const MilkCount = () => {
     const fetchMilkStats = async () => {
       try {
         // Fetch milk stats from the records
-        const recordsRef = collection(db, "farm", "stats", "records");
+        const recordsRef = collection(db, "farm", "farm-001", "meta", "stats", "records");
         const q = query(recordsRef, orderBy("timestamp", "desc"), limit(2)); // Order by timestamp for the last 2 records
         const querySnapshot = await getDocs(q);
 

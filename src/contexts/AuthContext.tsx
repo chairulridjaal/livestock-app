@@ -4,6 +4,7 @@ import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndP
 
 interface AuthContextType {
   user: {
+    uid: string | null;
     name: string | null;
     email: string | null;
     avatar: string | null;
@@ -11,20 +12,21 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (email: string, password: string) => Promise<UserCredential>;
-  setUser: React.Dispatch<React.SetStateAction<{ name: string | null; email: string | null; avatar: string | null; } | null>>;
+  setUser: React.Dispatch<React.SetStateAction<{ uid: string | null; name: string | null; email: string | null; avatar: string | null; } | null>>;
   isAuthChecked: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<{ name: string | null; email: string | null; avatar: string | null } | null>(null);
+  const [user, setUser] = useState<{ uid: string | null; name: string | null; email: string | null; avatar: string | null } | null>(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false); // flag to track if the auth state is checked
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         const userData = {
+          uid: firebaseUser.uid,
           name: firebaseUser.displayName,
           email: firebaseUser.email,
           avatar: firebaseUser.photoURL || '/default-avatar.jpg', // fallback to a default avatar
