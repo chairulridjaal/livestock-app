@@ -2,13 +2,24 @@ import { useState, useEffect } from "react";
 import { db } from "../../lib/firebase";
 import {
   doc,
+  deleteDoc,
   getDoc,
   setDoc,
   collection,
   addDoc,
   getDocs,
+  arrayRemove,
   serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from "@heroui/react"
 import {
   Card,
   CardHeader,
@@ -41,6 +52,17 @@ const geocodeLocation = async (location: string): Promise<[number, number]> => {
   return [0, 0];
 };
 
+const deleteCollection = async (collectionRef: any) => {
+  const snapshot = await getDocs(collectionRef);
+  const batch = writeBatch(db);
+
+  snapshot.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  await batch.commit();
+};
+
 const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
 try {
     const res = await fetch(
@@ -67,13 +89,37 @@ export default function FarmSettings() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+<<<<<<< Updated upstream
 
   const farmRef = doc(db, "farm", "farm-001", "meta", "information");
   const breedsRef = collection(db, "farm", "farm-001", "meta", "information", "breeds");
+=======
+  const [joinCode, setJoinCode] = useState("");
+  const [copied, setCopied] = useState(false);
+  const { isOpen: isModalOpen, onOpen, onOpenChange } = useDisclosure()
+  const [confirmationText, setConfirmationText] = useState("");
+  const isMatch = confirmationText.trim() === farmProfile.farmName;
+
+  const onCloseModal = () => {
+    setConfirmationText(""); // Clear input on close
+    onOpenChange();
+  };
+  
+>>>>>>> Stashed changes
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+<<<<<<< Updated upstream
+=======
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+        const farmDoc = await getDoc(doc(db, "farms", farmId));
+        setJoinCode(farmDoc.data()?.joinCode || "");
+        const farmRef = doc(db, "farms", farmId, "meta", "information");
+        const breedsRef = collection(db, "farms", farmId, "meta", "information", "breeds");
+
+>>>>>>> Stashed changes
         const snap = await getDoc(farmRef);
         if (snap.exists()) {
           const data = snap.data();
@@ -148,6 +194,69 @@ export default function FarmSettings() {
       setStatus("❌ Failed to save profile.");
     }
   };
+
+const handleDeleteFarm = async () => {
+  const currentUserId = auth.currentUser?.uid as string;
+  const userDocRef = doc(db, "users", currentUserId);
+  const userDoc = await getDoc(userDocRef);
+  const farmId = userDoc.data()?.currentFarm;
+
+  if (!farmId) return;
+
+  const farmRef = doc(db, "farms", farmId);
+
+  try {
+    // 1. Delete animals and their records
+    const animalsRef = collection(db, "farms", farmId, "animals");
+    const animalDocs = await getDocs(animalsRef);
+
+    for (const animal of animalDocs.docs) {
+      const recordsRef = collection(db, "farms", farmId, "animals", animal.id, "records");
+      await deleteCollection(recordsRef);
+      await deleteDoc(animal.ref);
+    }
+
+    await deleteCollection(collection(db, "farms", farmId, "meta"));
+
+    await deleteDoc(farmRef);
+
+    const usersSnapshot = await getDocs(collection(db, "users"));
+    const batch = writeBatch(db);
+
+    usersSnapshot.forEach((userDocSnap) => {
+      const userData = userDocSnap.data();
+      const userFarms = userData.farms || [];
+      const userId = userDocSnap.id;
+
+      if (userFarms.includes(farmId)) {
+        const updatedFarms = userFarms.filter((id: string) => id !== farmId);
+        const newCurrentFarm = updatedFarms.length > 0 ? updatedFarms[0] : null;
+
+        batch.update(doc(db, "users", userId), {
+          farms: arrayRemove(farmId),
+          currentFarm: newCurrentFarm,
+        });
+      }
+    });
+
+    await batch.commit();
+
+    addToast({
+      title: "Success",
+      description: `Farm "${farmId}" deleted successfully and user references updated.`,
+      color: "success",
+    });
+
+    window.location.reload();
+  } catch (err) {
+    console.error("Delete error:", err);
+    addToast({
+      title: "Error",
+      description: "Failed to delete the farm. See console.",
+      color: "danger",
+    });
+  }
+};
 
   const handleNewBreed = async () => {
     if (!newBreed.name) return;
@@ -236,6 +345,9 @@ export default function FarmSettings() {
             <Button onClick={handleSaveProfile}>Save Profile</Button>
             <Button onClick={handleUseCurrentLocation} variant="outline">
               Change to Current Location
+            </Button>
+            <Button variant="destructive" onClick={onOpen}>
+              Delete Farm
             </Button>
           </CardFooter>
         </Card>
@@ -331,6 +443,47 @@ export default function FarmSettings() {
 
       {/* Status Message */}
       {status && <p className="text-sm text-muted-foreground">{status}</p>}
+
+      {/* Delete Farm Modal */}
+          <Modal isOpen={isModalOpen} placement="top-center" onClose={onCloseModal}>
+      <ModalContent>
+        {() => (
+          <>
+            <ModalHeader className="text-center">
+            </ModalHeader>
+            <ModalBody className="flex flex-col gap-4">
+              <p className="text-flex font-bold">
+                Are you sure you want to delete{" "}
+                <span className="font-bold text-red-500">
+                  {farmProfile.farmName}
+                </span>
+                ?
+              </p>
+              <p className="text-sm text-gray-600">
+                This action cannot be undone. Please type the farm name exactly to confirm deletion of farm :
+              </p>
+              <Input
+                id="confirmation"
+                placeholder={farmProfile.farmName}
+                value={confirmationText}
+                onChange={(e) => setConfirmationText(e.target.value)}
+              />
+              <Button
+                className="w-full"
+                variant={"destructive"}
+                disabled={!isMatch}
+                onClick={() => {
+                  handleDeleteFarm();
+                }}
+              >
+                Delete Farm
+              </Button>
+            </ModalBody>
+            <ModalFooter />
+          </>
+        )}
+      </ModalContent>
+    </Modal>
     </div>
   );
 }
