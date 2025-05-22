@@ -34,39 +34,29 @@ function App() {
     const checkFarm = async () => {
       if (!user) {
         console.warn("No user, skipping farm check");
+        setCheckingFarm(false); // <- ADD THIS!
         return;
       }
 
-      console.log("Checking farm for user:", user.uid);
       setCheckingFarm(true);
-
       try {
-        const userDocRef = doc(db, "users", user.uid as string);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (!userDocSnap.exists()) {
-          console.error("User document does not exist in Firestore.");
-          return;
-        }
-
-        const userData = userDocSnap.data();
-        console.log("Fetched user data:", userData);
-
-        if (!userData?.farms || userData.farms.length === 0) {
-          console.warn("No farms found, redirecting...");
+        const userDoc = await getDoc(doc(db, "users", user.uid as string));
+        const data = userDoc.data();
+        if (!data?.farms || data.farms.length === 0) {
           navigate("/choose-farm");
-        } else {
-          console.log("User has farms:", userData.farms);
         }
-      } catch (error) {
-        console.error("🔥 Error during checkFarm:", error);
+      } catch (err) {
+        console.error("Error checking farm:", err);
       } finally {
         setCheckingFarm(false);
       }
     };
 
-    checkFarm();
-  }, [user, navigate]);
+    if (isAuthChecked) {
+      checkFarm(); // only run after auth is initialized
+    }
+  }, [user, isAuthChecked, navigate]);
+
 
   // 🔒 Failsafe timeout if checkFarm hangs
   useEffect(() => {
