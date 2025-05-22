@@ -1,7 +1,7 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { db } from "../../lib/firebase";
-import { collection, getDocs, query, orderBy, limit, Timestamp } from "firebase/firestore";
+import { db, auth } from "../../lib/firebase";
+import { collection, getDocs, getDoc, doc, query, orderBy, limit, Timestamp } from "firebase/firestore";
 import {
   Card,
   CardHeader,
@@ -226,7 +226,10 @@ const AnimalList = () => {
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
-        const animalsCollection = collection(db, "animals");
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+
+        const animalsCollection = collection(db, "farms", farmId, "animals");
         const snapshot = await getDocs(animalsCollection);
         const animalList = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -235,7 +238,7 @@ const AnimalList = () => {
         setAnimals(animalList);
 
         for (let animal of animalList) {
-          const recordsCollection = collection(db, "animals", animal.id, "records");
+          const recordsCollection = collection(db, "farms", farmId, "animals", animal.id, "records");
           const recordsQuery = query(recordsCollection, orderBy("date", "desc"), limit(1));
           const recordSnapshot = await getDocs(recordsQuery);
           if (!recordSnapshot.empty) {

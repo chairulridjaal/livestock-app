@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs} from "firebase/firestore";
-import { db } from "../../lib/firebase";
+import { collection, getDocs, getDoc, doc} from "firebase/firestore";
+import { db, auth } from "../../lib/firebase";
 import MilkProductionChart from "./Cards/MilkProduction";
 import AnimalCount from "./Cards/animalCount"; 
 import FeedCount from "./Cards/feedCount";
@@ -15,13 +15,16 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchSummary = async () => {
-      const animalsSnapshot = await getDocs(collection(db, "animals"));
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+
+      const animalsSnapshot = await getDocs(collection(db, "farms", farmId, "animals"));
       const animalDocs = animalsSnapshot.docs;
 
       let allRecentRecords: any[] = [];
 
       for (const animal of animalDocs) {
-        const recordsSnapshot = await getDocs(collection(db, "animals", animal.id, "records"));
+        const recordsSnapshot = await getDocs(collection(db, "farms", farmId, "animals", animal.id, "records"));
         const records = recordsSnapshot.docs.map(doc => {
           const data = doc.data();
           return { id: animal.id, date: data.date, weight: data.weight };

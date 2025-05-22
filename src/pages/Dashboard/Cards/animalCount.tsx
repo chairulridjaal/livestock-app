@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
@@ -13,12 +14,15 @@ const AnimalCount = () => {
   useEffect(() => {
     const fetchAnimalCount = async () => {
       try {
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+
         // Fetch current animal count from the "animals" collection
-        const animalsSnapshot = await getDocs(collection(db, "animals"));
+        const animalsSnapshot = await getDocs(collection(db, "farms", farmId, "animals"));
         setAnimalCount(animalsSnapshot.docs.length);
 
         // Fetch the previous month's animal count from the "farm/stats/records" collection
-        const recordsRef = collection(db, "farm", "stats", "records");
+        const recordsRef = collection(db, "farms", farmId, "meta", "stats", "records");
         const q = query(recordsRef, orderBy("timestamp", "desc"), limit(2)); // Use the timestamp to get the most recent records
         const querySnapshot = await getDocs(q);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
-import { db } from "../../lib/firebase"
-import { collection, setDoc, getDocs, doc, Timestamp } from "firebase/firestore"
+import { db, auth } from "../../lib/firebase"
+import { collection, setDoc, getDocs, doc, Timestamp, getDoc } from "firebase/firestore"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -22,8 +22,11 @@ function AddAnimal() {
   const [isDownloaded, setIsDownloaded] = useState(false)
   
   const fetchBreeds = async () => {
-    try {
-      const breedsCollection = collection(db, "farm", "information", "breeds");
+    try { 
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      
+      const breedsCollection = collection(db, "farms", farmId, "meta", "information", "breeds");
       const snapshot = await getDocs(breedsCollection)
       const breedList = snapshot.docs.map(doc => doc.data().name) // Assuming each breed document has a 'name' field
       setBreeds(breedList)
@@ -76,10 +79,13 @@ function AddAnimal() {
   useEffect(() => {
     const fetchAnimalIds = async () => {
       try {
-        const animalCollection = collection(db, "animals");
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+
+        const animalCollection = collection(db, "farms", farmId as string, "animals");
         const snapshot = await getDocs(animalCollection);
   
-        const animalIds = snapshot.docs.map(doc => doc.id); // use doc.id, not doc.data()
+        const animalIds = snapshot.docs.map(doc => doc.id);
   
         const usedNumbers = new Set<number>();
   
@@ -136,7 +142,9 @@ function AddAnimal() {
     }
 
     try {
-      await setDoc(doc(db, "animals", id), {
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      await setDoc(doc(db, "farms", farmId, "animals", id), {
         id,
         name,
         breed,

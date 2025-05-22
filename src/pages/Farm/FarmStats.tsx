@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import {
   doc,
   getDoc,
@@ -21,7 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
+import { Check, Clipboard } from "lucide-react";
+import { addToast } from "@heroui/toast";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -67,13 +68,20 @@ export default function FarmSettings() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-
-  const farmRef = doc(db, "farm", "farm-001", "meta", "information");
-  const breedsRef = collection(db, "farm", "farm-001", "meta", "information", "breeds");
+  const [joinCode, setJoinCode] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+        const farmDoc = await getDoc(doc(db, "farms", farmId));
+        setJoinCode(farmDoc.data()?.joinCode || "");
+        console.log("Join Code: ", joinCode);
+        const farmRef = doc(db, "farms", farmId, "meta", "information");
+        const breedsRef = collection(db, "farms", farmId, "meta", "information", "breeds");
+
         const snap = await getDoc(farmRef);
         if (snap.exists()) {
           const data = snap.data();
@@ -132,32 +140,43 @@ export default function FarmSettings() {
     setFarmProfile((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(joinCode);
+    setCopied(true);
+    addToast({
+      title: "",
+      description: `Join code copied to clipboard!`,
+      color: "success",
+    });
+    setTimeout(() => setCopied(false), 2000); // Reset copied after 2 seconds
+  };
+
   const handleSaveProfile = async () => {
     try {
+      const farmId = (await getDoc(doc(db, "users", auth.currentUser?.uid as string))).data()?.currentFarm;
+      const farmRef = doc(db, "farms", farmId, "meta", "information");
       await setDoc(farmRef, {
         ...farmProfile,
         lastUpdated: serverTimestamp(),
       });
-      setStatus("✅ Farm profile saved.");
       const coords = await geocodeLocation(farmProfile.location);
       setLocationCoords(coords);
-      setStatus("✅ Profile updated and map reloaded.");
       window.location.reload();
     } catch (err) {
       console.error("Save error:", err);
-      setStatus("❌ Failed to save profile.");
     }
   };
 
   const handleNewBreed = async () => {
     if (!newBreed.name) return;
     try {
+      const farmId = (await getDoc(doc(db, "users", auth.currentUser?.uid as string))).data()?.currentFarm;
+      const breedsRef = collection(db, "farms", farmId, "meta", "information", "breeds");
       await addDoc(breedsRef, {
         ...newBreed,
         createdAt: serverTimestamp(),
       });
       setNewBreed({ name: "", description: "" });
-      setStatus("✅ New breed added.");
       const breedsSnap = await getDocs(breedsRef);
       setBreeds(
         breedsSnap.docs.map((doc) => ({
@@ -168,7 +187,6 @@ export default function FarmSettings() {
       );
     } catch (err) {
       console.error("Add breed error:", err);
-      setStatus("❌ Failed to add breed.");
     }
   };
 
@@ -308,6 +326,23 @@ export default function FarmSettings() {
         <Card className="w-full sm:w-[320px] flex-1 min-w-[260px]">
           <CardHeader><CardTitle>Invite Admin</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <div className="mb-2">
+              <Label>Join Code</Label>
+              <div
+                className="font-mono bg-muted rounded px-2 py-1 text-sm select-all cursor-pointer flex items-center gap-2 hover:bg-muted/80 transition"
+                onClick={handleCopy}
+              >
+                {joinCode}
+                {copied ? (
+                  <Check className="w-4 h-4 text-green-600" />
+                ) : (
+                  <Clipboard className="w-4 h-4 text-muted-foreground" />
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Click to copy and share this code with admins to join your farm.
+              </div>
+            </div>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input

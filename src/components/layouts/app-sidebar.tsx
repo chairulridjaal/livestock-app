@@ -31,7 +31,14 @@ const data = {
       items: [
         { title: "Dashboard", url: "/", isActive: false },
         { title: "Analytics", url: "/analytics", isActive: false },
-        { title: "Farm", url: "/farm", isActive: false },
+      ],
+    },
+    {
+      title: "Farm",
+      url: "/",
+      items: [
+        { title: "Settings", url: "/farm/settings", isActive: false },
+        { title: "Manage Stocks", url: "/farm/manage", isActive: false },
       ],
     },
     {
@@ -83,10 +90,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           onClick={() => window.location.href = '/'}
         >
           <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <Tractor className="size-6" />
+            <img
+              src="/logo-circle-black.png"
+              alt="HerdSphere Logo"
+              className="h-10 w-auto object-contain rounded"
+            />
           </div>
           <div className="flex flex-col gap-0.5 leading-none">
-            <span className="font-bold">FarmHub Inc.</span>
+            <span className="font-bold">HerdSphere Inc.</span>
           </div>
         </SidebarMenuButton>
 
