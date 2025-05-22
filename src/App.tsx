@@ -11,7 +11,7 @@ import AddAnimal from "./pages/Livestock/AddAnimal";
 import AnimalList from "./pages/Livestock/AnimalList";
 import Livestock from "./pages/Livestock/Livestock";
 import EditAnimal from "./pages/Livestock/EditAnimal";
-import FarmStats from "./pages/Farm/farmStats";
+import FarmStats from "./pages/Farm/FarmStats";
 import ManageStock from "./pages/Farm/manageStock";
 import UploadCsv from "./pages/UploadCsv";
 import Login from "./components/Login";
@@ -52,7 +52,7 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-      {!isAuthChecked ? (
+      {!isAuthChecked || checkingFarm ? (
         <div className="flex flex-col items-center justify-center h-screen bg-background">
           <img src="/happy-cow.webp" alt="Loading..." className="w-32 h-32 animate-spin-fast" />
           <p className="mt-4 text-lg text-muted-foreground">Moo-ving things into place...</p>
