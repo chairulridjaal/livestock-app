@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 import { useTheme } from "next-themes";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../../lib/firebase";
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
+import { db, auth } from "../../../lib/firebase";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const MilkProductionChart = () => {
@@ -12,7 +12,10 @@ const MilkProductionChart = () => {
 
   useEffect(() => {
     const fetchMilkData = async () => {
-      const animalsSnapshot = await getDocs(collection(db, "animals"));
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+
+      const animalsSnapshot = await getDocs(collection(db, "farms", farmId, "animals"));
       const milkByDate: { [date: string]: number } = {};
 
       const now = new Date();
@@ -37,7 +40,7 @@ const MilkProductionChart = () => {
 
       for (const animalDoc of animalsSnapshot.docs) {
         const animalId = animalDoc.id;
-        const recordsSnapshot = await getDocs(collection(db, "animals", animalId, "records"));
+        const recordsSnapshot = await getDocs(collection(db, "farms", farmId, "animals", animalId, "records"));
 
         recordsSnapshot.forEach((recordDoc) => {
           const record = recordDoc.data();

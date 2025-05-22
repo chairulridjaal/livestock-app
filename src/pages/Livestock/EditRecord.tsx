@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { db } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import { addToast } from "@heroui/toast";
 import {
   doc,
   getDoc,
   updateDoc,
+  deleteDoc,
 } from "firebase/firestore";
 
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,15 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { 
+  Alert,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+ } from "@heroui/react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,13 +43,16 @@ function EditRecord() {
   const [animalType, setAnimalType] = useState("");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const fetchRecord = async () => {
       if (!animalId || !recordId) return;
 
       try {
-        const recordRef = doc(db, "animals", animalId, "records", recordId);
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+        const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
         const recordSnap = await getDoc(recordRef);
         if (recordSnap.exists()) {
           const data = recordSnap.data();
@@ -73,12 +86,39 @@ function EditRecord() {
     fetchRecord();
   }, [animalId, recordId, navigate]);
 
+  const handleDelete = async () => {
+    if (!animalId || !recordId) return;
+    try {
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
+      await deleteDoc(recordRef);
+
+      addToast({
+        title: "Record Deleted",
+        description: `Record for animal ${animalId} has been deleted.`,
+        color: "success",
+      });
+
+      navigate("/livestock/edit/" + animalId);
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      addToast({
+        title: "Error",
+        description: "Failed to delete record.",
+        color: "danger",
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!animalId || !recordId) return;
 
     try {
-      const recordRef = doc(db, "animals", animalId, "records", recordId);
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
       await updateDoc(recordRef, {
         weight: parseFloat(weight),
         health,
@@ -175,8 +215,40 @@ function EditRecord() {
                 rows={3}
               />
             </div>
+            <div className="flex justify-between">
+            <Button type="submit" className="mt-4" >Update Record</Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick= {() => setIsOpen(true)}
+              className="mt-4"> Delete Record </Button>
 
-            <Button type="submit">Update Record</Button>
+              <Modal backdrop="opaque" isOpen={isOpen} onClose={() => setIsOpen(false)}>
+                <ModalContent>
+                  {(onClose) => (
+                    <>
+                      <ModalHeader className="flex flex-col gap-1">Confirm Deletion</ModalHeader>
+                      <ModalBody>
+                        <p>
+                        Are you sure you want to delete <strong> {recordId} </strong>?
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          This action cannot be undone.
+                        </p>
+                      </ModalBody>
+                      <ModalFooter>
+                        <Button variant="secondary" onClick={onClose}>
+                          Cancel
+                        </Button>
+                        <Button className="text-red-600 hover:text-red-600" variant="ghost" onClick={() => { handleDelete(); onClose(); }}>
+                          Yes, Delete
+                        </Button>
+                      </ModalFooter>
+                    </>
+                  )}
+                </ModalContent>
+              </Modal>
+            </div>
           </form>
         </CardContent>
       </Card>

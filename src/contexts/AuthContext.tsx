@@ -61,12 +61,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, {
-        displayName: email.split('@')[0], // Simple example of setting display name based on email
-        photoURL: '/default-avatar.jpg', // Set a default avatar
+        displayName: email.split('@')[0],
+        photoURL: '/default-avatar.jpg',
       });
       return userCredential;
-    } catch (error) {
-      throw new Error('Error signing up');
+    } catch (error: any) {
+      console.error('Firebase signup error:', error);
+      throw error;
     }
   };
 

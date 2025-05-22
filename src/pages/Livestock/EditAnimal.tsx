@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { add, format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
-import { db } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,7 +100,7 @@ export const createColumns = (navigate: ReturnType<typeof useNavigate>, animalId
     accessorKey: "weight",
     header: ({ column }) => (
       <div
-        className="flex items-center justify-center space-x-2" // Center the header content
+        className="flex items-center justify-center space-x-2"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         <span>Weight</span>
@@ -114,87 +114,134 @@ export const createColumns = (navigate: ReturnType<typeof useNavigate>, animalId
           {weight as number} kg
         </div>
       );
-      },
-      },
-      {
-        accessorKey: "feed",
-        header: () => (
-          <div
-            className="flex items-center justify-center space-x-2"
-          >
-            <span>Feed</span>
-          </div>
-        ),
-        cell: ({ row }) => {
-          const feed = row.getValue("feed");
-          return (
-            <div className="text-center">
-              {feed ? `${feed} kg` : "-"}
-            </div>
-          )
-          },
-          },
-          {
-            accessorKey: "milk",
-            header: () => (
-              <div
-                className="flex items-center justify-center space-x-2"
-              >
-                <span>Milk</span>
-              </div>
-            ),
-            cell: ({ row }) => {
-              const milk = row.getValue("milk");         
-              return (
-                <div className="text-center">
-                  {milk ? `${milk} L` : "-"}
-                </div>
-              );
-            },
-          },
-          {
-          accessorKey: "health",
-          header: () => (
-          <div
-            className="flex items-center justify-center space-x-2"
-          >
-            <span>Health</span>
-          </div>
-        ),
-        cell: ({ row }) => {
-          const health: string | undefined = row.getValue("health");
-          return (
-            <div className="text-center">
-              {health ? health : "-"}
-            </div>
-          );
-        },
-      },
-      {
-      accessorKey: "actions",
-      header: "",
-      cell: ({ row }) => {
-      const recordId = row.getValue("date") instanceof Timestamp
-        ? format((row.getValue("date") as Timestamp).toDate(), "yyyy-MM-dd")
-        : row.getValue("date") as string;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate(`/livestock/edit/${animalId}/${recordId}`)}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => console.log(`Delete record ${recordId}`)}>Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
     },
   },
-]
+  {
+    accessorKey: "feed",
+    header: () => (
+      <div className="flex items-center justify-center space-x-2">
+        <span>Feed</span>
+      </div>
+    ),
+    cell: ({ row }) => {
+      const feed = row.getValue("feed");
+      return (
+        <div className="text-center">
+          {feed ? `${feed} kg` : "-"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "milk",
+    header: () => (
+      <div className="flex items-center justify-center space-x-2">
+        <span>Milk</span>
+      </div>
+    ),
+    cell: ({ row }) => {
+      const milk = row.getValue("milk");
+      return (
+        <div className="text-center">
+          {milk ? `${milk} L` : "-"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "health",
+    header: () => (
+      <div className="flex items-center justify-center space-x-2">
+        <span>Health</span>
+      </div>
+    ),
+    cell: ({ row }) => {
+      const health: string | undefined = row.getValue("health");
+      return (
+        <div className="text-center">
+          {health ? health : "-"}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "actions",
+    header: "",
+    cell: function ActionsCell({ row }) {
+      // Use a React component to allow hooks
+      const recordId =
+        row.original.id ||
+        (row.getValue("date") instanceof Timestamp
+          ? format((row.getValue("date") as Timestamp).toDate(), "yyyy-MM-dd")
+          : row.getValue("date") as string);
+
+      const [isOpen, setIsOpen] = React.useState(false);
+
+      const handleDeleteRecord = async (recordId: string) => {
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+
+        const recordDocRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
+        await deleteDoc(recordDocRef);
+        addToast({
+          title: "Record Deleted",
+          description: `Record ${recordId} has been deleted successfully.`,
+          color: "success",
+        });
+      };
+
+      return (
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate(`/livestock/edit/${animalId}/${recordId}`)}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setIsOpen(true)}>Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Modal backdrop="opaque" isOpen={isOpen} onClose={() => setIsOpen(false)}>
+            <ModalContent>
+              {(onClose) => (
+                <>
+                  <ModalHeader className="flex flex-col gap-1">Confirm Deletion</ModalHeader>
+                  <ModalBody>
+                    <p>
+                      Are you sure you want to delete <strong>{recordId}</strong>?
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      This action cannot be undone.
+                    </p>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button variant="secondary" onClick={onClose}>
+                      Cancel
+                    </Button>
+                    <Button
+                      className="text-red-600 hover:text-red-600"
+                      variant="ghost"
+                      onClick={() => {
+                        handleDeleteRecord(recordId);
+                        onClose();
+                      }}
+                    >
+                      Yes, Delete
+                    </Button>
+                  </ModalFooter>
+                </>
+              )}
+            </ModalContent>
+          </Modal>
+        </>
+      );
+    },
+  },
+];
 
 export function RecordsTable({ data, animalId, navigate }: { data: Records[]; animalId: string; navigate: ReturnType<typeof useNavigate> }) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -269,6 +316,9 @@ const EditAnimal = () => {
       }
 
       try {
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+
         // Fetch breeds from Firestore (farm/information/breeds collection)
         const breedsCollection = collection(db, "farm", "farm-001", "meta", "information", "breeds");
         const breedsSnapshot = await getDocs(breedsCollection);
@@ -276,7 +326,7 @@ const EditAnimal = () => {
         setBreeds(breedList); // Set the breeds state
 
         // Fetch the animal data
-        const animalDocRef = doc(db, "animals", animalId);
+        const animalDocRef = doc(db, "farms", farmId, "animals", animalId);
         const animalDocSnap = await getDoc(animalDocRef);
 
         if (animalDocSnap.exists()) {
@@ -290,7 +340,7 @@ const EditAnimal = () => {
           console.error("No such animal document found!");
         }
 
-        const recordsRef = collection(db, "animals", animalId, "records");
+        const recordsRef = collection(db, "farms", farmId, "animals", animalId, "records");
         const recordsQuery = query(recordsRef, orderBy("date", "desc"));
         const recordsSnapshot = await getDocs(recordsQuery);
         const recordsData = recordsSnapshot.docs.map(doc => ({

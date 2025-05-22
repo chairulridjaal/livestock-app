@@ -105,7 +105,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
             <div className="flex flex-col items-center text-center">
               <h1 className="text-2xl font-bold">Welcome back</h1>
               <p className="text-sm text-muted-foreground">
-              Login to your AgriVault account
+              Login to your HerdSphere account
               </p>
             </div>
 
