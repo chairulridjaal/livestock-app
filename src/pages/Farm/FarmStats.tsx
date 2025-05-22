@@ -105,6 +105,9 @@ export default function FarmSettings() {
     onOpenChange();
   };
   
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
   useEffect(() => {

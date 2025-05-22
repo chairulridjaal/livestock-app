@@ -136,6 +136,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props}>
       <SidebarHeader>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <SidebarMenuButton
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -149,6 +150,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
         </SidebarMenuButton>
 
+=======
+        <TeamSwitcher teams={farms} />
+>>>>>>> Stashed changes
 =======
         <TeamSwitcher teams={farms} />
 >>>>>>> Stashed changes
