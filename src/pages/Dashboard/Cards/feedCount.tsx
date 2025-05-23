@@ -4,12 +4,10 @@ import { db, auth } from "@/lib/firebase";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
-import { set } from "date-fns";
 
 const FeedCount = () => {
   const [totalFeed, setTotalFeed] = useState(0);
   const [totalCurrentFeed, setTotalCurrentFeed] = useState(0);
-  const [previousFeed, setPreviousFeed] = useState(0);
   const [trendPercent, setTrendPercent] = useState(0);
   const [isUp, setIsUp] = useState(true);
 

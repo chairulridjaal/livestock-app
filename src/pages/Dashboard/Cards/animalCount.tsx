@@ -13,9 +13,12 @@ const AnimalCount = () => {
   useEffect(() => {
     const fetchAnimalCount = async () => {
       try {
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+
         // Fetch current animal count from the "animals" collection
-          const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
-          const farmId = farmData.data()?.currentFarm;
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
         const animalsSnapshot = await getDocs(collection(db, "farms", farmId, "animals"));
         setAnimalCount(animalsSnapshot.docs.length);
 
