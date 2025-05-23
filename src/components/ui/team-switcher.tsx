@@ -67,7 +67,7 @@ export function TeamSwitcher({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [approveMessage, setApproveMessage] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(2);
   const navigate = useNavigate();
 
   if (!user) {
@@ -130,7 +130,7 @@ export function TeamSwitcher({
         farms: arrayUnion(farmRef.id),
         currentFarm: farmRef.id,
       });
-      setApproveMessage(`Farm "${newFarmName}" created successfully!`);
+      setApproveMessage(`Farm "${newFarmName}" created successfully! Redirecting in ${countdown} seconds...`);
       const timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {

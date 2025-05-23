@@ -30,6 +30,8 @@ export default function ChooseFarm() {
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [approveMessage, setApproveMessage] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(2);
 
   if (!user) return null;
 
@@ -75,19 +77,32 @@ export default function ChooseFarm() {
         createdAt: new Date(),
       });
 
-      const farmInfo = doc(db, 'farms', nextFarmId, "meta", "Information");
+      const farmInfo = doc(db, 'farms', nextFarmId, "meta", "information");
       await setDoc(farmInfo, {
         farmName: newFarmName,
         joinCode: finalJoinCode,
         createdAt: new Date(),
+        location: '',
       });
 
       await updateDoc(doc(db, 'users', user.uid as string), {
         farms: arrayUnion(farmRef.id),
         currentFarm: farmRef.id,
       });
-
-      navigate('/dashboard');
+      setApproveMessage(`Farm "${newFarmName}" created successfully! Redirecting in ${countdown} seconds...`);
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            navigate('/');
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      if (countdown === 0) {
+        navigate('/');
+        clearInterval(timer);
+      }
     } catch (err) {
       setError('Failed to create farm.');
       console.error(err);
