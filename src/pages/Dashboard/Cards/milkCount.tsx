@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, limit, getDocs, getDoc, doc } from "firebase/firestore";
-import { db, auth} from "@/lib/firebase";
+import { collection, query, orderBy, limit, getDocs, getDoc, doc} from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
@@ -16,7 +16,9 @@ const MilkCount = () => {
         // Fetch the current farm ID from the user's data
         const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
         const farmsId = farmData.data()?.currentFarm;
-        const recordsRef = collection(db, "farms", farmId, "meta", "stats", "records");
+
+        // Fetch milk stats from the records
+        const recordsRef = collection(db, "farms", farmsId, "meta", "stats", "records");
         const q = query(recordsRef, orderBy("timestamp", "desc"), limit(2)); // Order by timestamp for the last 2 records
         const querySnapshot = await getDocs(q);
 
