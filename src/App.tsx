@@ -92,7 +92,6 @@ function App() {
 
         <Route path="/scan" element={user ? <Layout><ScanPage /></Layout> : <Login />} />
         <Route path="/livestock" element={user ? <Layout><Livestock /></Layout> : <Login />} />
-        <Route path="/analytics" element={user ? <Layout><Analytics /></Layout> : <Login />} />
         <Route path="/livestock/record" element={user ? <Layout><Record /></Layout> : <Login />} />
         <Route path="/livestock/add" element={user ? <Layout><AddAnimal /></Layout> : <Login />} />
         <Route path="/livestock/list" element={user ? <Layout><AnimalList /></Layout> : <Login />} />
@@ -102,6 +101,7 @@ function App() {
         <Route path="/seed" element={user ? <Layout><UploadCsv /></Layout> : <Login />} />
         <Route path="/farm/settings" element={user ? <Layout><FarmStats /></Layout> : <Login />} />
         <Route path="/farm/manage" element={user ? <Layout><ManageStock /></Layout> : <Login />} />
+        <Route path="/farm/overview" element={user ? <Layout><Analytics /></Layout> : <Login />} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

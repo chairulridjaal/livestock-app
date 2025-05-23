@@ -3,6 +3,7 @@ import { db, auth } from "../../lib/firebase";
 import {
   doc,
   deleteDoc,
+  updateDoc,
   getDoc,
   setDoc,
   collection,
@@ -11,6 +12,9 @@ import {
   arrayRemove,
   serverTimestamp,
   writeBatch,
+  Query,
+  DocumentData,
+  count,
 } from "firebase/firestore";
 import {
   Modal,
@@ -19,7 +23,6 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-  addToast,
 } from "@heroui/react"
 import {
   Card,
@@ -33,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { addToast } from "@heroui/toast";
 import { Copy } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -53,15 +57,21 @@ const geocodeLocation = async (location: string): Promise<[number, number]> => {
   return [0, 0];
 };
 
-const deleteCollection = async (collectionRef: any) => {
+const deleteCollection = async (collectionRef: Query<DocumentData>) => {
   const snapshot = await getDocs(collectionRef);
+
+  if (snapshot.empty) return;
+
   const batch = writeBatch(db);
 
-  snapshot.forEach((doc) => {
+  snapshot.docs.forEach((doc) => {
     batch.delete(doc.ref);
   });
 
   await batch.commit();
+
+  // Recursively call until all docs are deleted
+  await deleteCollection(collectionRef);
 };
 
 const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
@@ -142,6 +152,68 @@ export default function FarmSettings() {
 
     fetchData();
   }, []);
+
+const handleLeaveFarm = async (farmId: string, userId: string) => {
+  try {
+    const farmRef = doc(db, "farms", farmId);
+    const farmSnap = await getDoc(farmRef);
+
+    if (!farmSnap.exists()) {
+      addToast({
+        title: "Error",
+        description: "Farm not found.",
+        color: "danger",
+      });
+      return;
+    }
+
+    const farmData = farmSnap.data();
+    
+    if (farmData.owner === userId) {
+      addToast({
+        title: "Action denied",
+        description: "You are the owner and cannot leave the farm.",
+        color: "danger",
+      });
+      return;
+    }
+
+    if (!farmData.members?.includes(userId)) {
+      addToast({
+        title: "Error",
+        description: "You are not a member of this farm.",
+        color: "danger",
+      });
+      return;
+    }
+
+    await updateDoc(doc(db, "users", userId as string), {
+      currentFarm: null,
+      farms: arrayRemove(farmId),
+    });
+
+    await updateDoc(farmRef, {
+      members: arrayRemove(userId),
+    });
+
+    addToast({
+      title: "Left farm",
+      description: "You have successfully left the farm.",
+      color: "success",
+    });
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  } catch (error) {
+    console.error("Leave farm error:", error);
+    addToast({
+      title: "Unexpected error",
+      description: "Something went wrong. Please try again.",
+      color: "danger",
+    });
+  }
+};
+
 
   const handleUseCurrentLocation = () => {
   if (!navigator.geolocation) {
@@ -349,9 +421,9 @@ const handleDeleteFarm = async () => {
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button onClick={handleSaveProfile}>Save Profile</Button>
-            <Button onClick={handleUseCurrentLocation} variant="outline">
+            {/* <Button onClick={handleUseCurrentLocation} variant="outline">
               Change to Current Location
-            </Button>
+            </Button> */}
             <Button variant="destructive" onClick={onOpen}>
               Delete Farm
             </Button>
@@ -462,6 +534,33 @@ const handleDeleteFarm = async () => {
           </CardContent>
           <CardFooter>
             <Button onClick={handleGenerateInvite}>Generate Invite Link</Button>
+          </CardFooter>
+        </Card>
+
+        {/* Leave Farm */}
+        <Card className="w-full sm:w-[320px] flex-1 min-w-[260px]">
+          <CardHeader><CardTitle>Leave Farm</CardTitle></CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Leaving the farm will remove you from all farm activities.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                // Get current farmId and userId
+                const currentUserId = auth.currentUser?.uid as string;
+                const userDocRef = doc(db, "users", currentUserId);
+                const userDocSnap = await getDoc(userDocRef);
+                const farmId = userDocSnap.data()?.currentFarm;
+                if (farmId && currentUserId) {
+                  await handleLeaveFarm(farmId, currentUserId);
+                }
+              }}
+            >
+              Leave Farm
+            </Button>
           </CardFooter>
         </Card>
       </div>

@@ -215,7 +215,7 @@ export function TeamSwitcher({
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <activeTeam.logo className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -233,7 +233,7 @@ export function TeamSwitcher({
               sideOffset={4}
             >
               <DropdownMenuLabel className="text-xs text-muted-foreground">
-                Farms
+                Farms 
               </DropdownMenuLabel>
 
               {teams.map((team, index) => (
@@ -261,7 +261,7 @@ export function TeamSwitcher({
                     <team.logo className="size-4 shrink-0" />
                   </div>
                   {team.name}
-                  <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                  <DropdownMenuShortcut>{index + 1}</DropdownMenuShortcut>
                 </DropdownMenuItem>
               ))}
 
@@ -282,7 +282,7 @@ export function TeamSwitcher({
                 <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                   <Plus className="size-4" />
                 </div>
-                <div className="font-medium text-muted-foreground">Add farm</div>
+                <div className="font-medium text-muted-foreground">Add a new farm</div>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -333,6 +333,8 @@ export function TeamSwitcher({
                   name="Join Code"
                   placeholder="Farm Code"
                   variant="bordered"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value)}
                 />
                   <Button
                     variant="secondary"
