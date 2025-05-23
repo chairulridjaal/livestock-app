@@ -2,13 +2,25 @@ import { useState, useEffect } from "react";
 import { db, auth } from "../../lib/firebase";
 import {
   doc,
+  deleteDoc,
   getDoc,
   setDoc,
   collection,
   addDoc,
   getDocs,
+  arrayRemove,
   serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  addToast,
+} from "@heroui/react"
 import {
   Card,
   CardHeader,
@@ -21,8 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Check, Clipboard } from "lucide-react";
-import { addToast } from "@heroui/toast";
+import { Copy } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -40,6 +51,17 @@ const geocodeLocation = async (location: string): Promise<[number, number]> => {
     console.error("Geocoding error:", error);
   }
   return [0, 0];
+};
+
+const deleteCollection = async (collectionRef: any) => {
+  const snapshot = await getDocs(collectionRef);
+  const batch = writeBatch(db);
+
+  snapshot.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  await batch.commit();
 };
 
 const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
@@ -70,6 +92,14 @@ export default function FarmSettings() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
+  const { isOpen: isModalOpen, onOpen, onOpenChange } = useDisclosure()
+  const [confirmationText, setConfirmationText] = useState("");
+  const isMatch = confirmationText.trim() === farmProfile.farmName;
+
+  const onCloseModal = () => {
+    setConfirmationText(""); // Clear input on close
+    onOpenChange();
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,7 +108,6 @@ export default function FarmSettings() {
         const farmId = farmData.data()?.currentFarm;
         const farmDoc = await getDoc(doc(db, "farms", farmId));
         setJoinCode(farmDoc.data()?.joinCode || "");
-        console.log("Join Code: ", joinCode);
         const farmRef = doc(db, "farms", farmId, "meta", "information");
         const breedsRef = collection(db, "farms", farmId, "meta", "information", "breeds");
 
@@ -140,43 +169,111 @@ export default function FarmSettings() {
     setFarmProfile((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(joinCode);
-    setCopied(true);
-    addToast({
-      title: "",
-      description: `Join code copied to clipboard!`,
-      color: "success",
-    });
-    setTimeout(() => setCopied(false), 2000); // Reset copied after 2 seconds
-  };
-
   const handleSaveProfile = async () => {
     try {
-      const farmId = (await getDoc(doc(db, "users", auth.currentUser?.uid as string))).data()?.currentFarm;
+      // Get current farmId from user doc
+      const currentUserId = auth.currentUser?.uid as string;
+      const userDocRef = doc(db, "users", currentUserId);
+      const userDoc = await getDoc(userDocRef);
+      const farmId = userDoc.data()?.currentFarm;
+      if (!farmId) throw new Error("No current farm found for user.");
       const farmRef = doc(db, "farms", farmId, "meta", "information");
+
       await setDoc(farmRef, {
         ...farmProfile,
         lastUpdated: serverTimestamp(),
       });
+      setStatus("✅ Farm profile saved.");
       const coords = await geocodeLocation(farmProfile.location);
       setLocationCoords(coords);
+      setStatus("✅ Profile updated and map reloaded.");
       window.location.reload();
     } catch (err) {
       console.error("Save error:", err);
+      setStatus("❌ Failed to save profile.");
     }
   };
+
+const handleDeleteFarm = async () => {
+  const currentUserId = auth.currentUser?.uid as string;
+  const userDocRef = doc(db, "users", currentUserId);
+  const userDoc = await getDoc(userDocRef);
+  const farmId = userDoc.data()?.currentFarm;
+
+  if (!farmId) return;
+
+  const farmRef = doc(db, "farms", farmId);
+
+  try {
+    // 1. Delete animals and their records
+    const animalsRef = collection(db, "farms", farmId, "animals");
+    const animalDocs = await getDocs(animalsRef);
+
+    for (const animal of animalDocs.docs) {
+      const recordsRef = collection(db, "farms", farmId, "animals", animal.id, "records");
+      await deleteCollection(recordsRef);
+      await deleteDoc(animal.ref);
+    }
+
+    await deleteCollection(collection(db, "farms", farmId, "meta"));
+
+    await deleteDoc(farmRef);
+
+    const usersSnapshot = await getDocs(collection(db, "users"));
+    const batch = writeBatch(db);
+
+    usersSnapshot.forEach((userDocSnap) => {
+      const userData = userDocSnap.data();
+      const userFarms = userData.farms || [];
+      const userId = userDocSnap.id;
+
+      if (userFarms.includes(farmId)) {
+        const updatedFarms = userFarms.filter((id: string) => id !== farmId);
+        const newCurrentFarm = updatedFarms.length > 0 ? updatedFarms[0] : null;
+
+        batch.update(doc(db, "users", userId), {
+          farms: arrayRemove(farmId),
+          currentFarm: newCurrentFarm,
+        });
+      }
+    });
+
+    await batch.commit();
+
+    addToast({
+      title: "Success",
+      description: `Farm "${farmId}" deleted successfully and user references updated.`,
+      color: "success",
+    });
+
+    window.location.reload();
+  } catch (err) {
+    console.error("Delete error:", err);
+    addToast({
+      title: "Error",
+      description: "Failed to delete the farm. See console.",
+      color: "danger",
+    });
+  }
+};
 
   const handleNewBreed = async () => {
     if (!newBreed.name) return;
     try {
-      const farmId = (await getDoc(doc(db, "users", auth.currentUser?.uid as string))).data()?.currentFarm;
+      // Get current farmId from user doc
+      const currentUserId = auth.currentUser?.uid as string;
+      const userDocRef = doc(db, "users", currentUserId);
+      const userDoc = await getDoc(userDocRef);
+      const farmId = userDoc.data()?.currentFarm;
+      if (!farmId) throw new Error("No current farm found for user.");
       const breedsRef = collection(db, "farms", farmId, "meta", "information", "breeds");
+
       await addDoc(breedsRef, {
         ...newBreed,
         createdAt: serverTimestamp(),
       });
       setNewBreed({ name: "", description: "" });
+      setStatus("✅ New breed added.");
       const breedsSnap = await getDocs(breedsRef);
       setBreeds(
         breedsSnap.docs.map((doc) => ({
@@ -186,7 +283,7 @@ export default function FarmSettings() {
         }))
       );
     } catch (err) {
-      console.error("Add breed error:", err);
+      console.error("Add breed error:", err);    
     }
   };
 
@@ -254,6 +351,9 @@ export default function FarmSettings() {
             <Button onClick={handleSaveProfile}>Save Profile</Button>
             <Button onClick={handleUseCurrentLocation} variant="outline">
               Change to Current Location
+            </Button>
+            <Button variant="destructive" onClick={onOpen}>
+              Delete Farm
             </Button>
           </CardFooter>
         </Card>
@@ -326,23 +426,25 @@ export default function FarmSettings() {
         <Card className="w-full sm:w-[320px] flex-1 min-w-[260px]">
           <CardHeader><CardTitle>Invite Admin</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            <div className="mb-2">
-              <Label>Join Code</Label>
-              <div
-                className="font-mono bg-muted rounded px-2 py-1 text-sm select-all cursor-pointer flex items-center gap-2 hover:bg-muted/80 transition"
-                onClick={handleCopy}
-              >
-                {joinCode}
-                {copied ? (
-                  <Check className="w-4 h-4 text-green-600" />
-                ) : (
-                  <Clipboard className="w-4 h-4 text-muted-foreground" />
-                )}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Click to copy and share this code with admins to join your farm.
-              </div>
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Join Code</Label>
+
+            <div
+              onClick={() => {
+                if (!joinCode) return;
+                navigator.clipboard.writeText(joinCode);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex items-center gap-2 w-fit px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition cursor-pointer select-all"
+              title="Click to copy"
+            >
+              <span className="font-mono text-sm">
+                {copied ? "Copied!" : joinCode || "N/A"}
+              </span>
+              <Copy className="h-4 w-4 text-gray-600" />
             </div>
+          </div>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input
@@ -366,6 +468,47 @@ export default function FarmSettings() {
 
       {/* Status Message */}
       {status && <p className="text-sm text-muted-foreground">{status}</p>}
+
+      {/* Delete Farm Modal */}
+          <Modal isOpen={isModalOpen} placement="top-center" onClose={onCloseModal}>
+      <ModalContent>
+        {() => (
+          <>
+            <ModalHeader className="text-center">
+            </ModalHeader>
+            <ModalBody className="flex flex-col gap-4">
+              <p className="text-flex font-bold">
+                Are you sure you want to delete{" "}
+                <span className="font-bold text-red-500">
+                  {farmProfile.farmName}
+                </span>
+                ?
+              </p>
+              <p className="text-sm text-gray-600">
+                This action cannot be undone. Please type the farm name exactly to confirm deletion of farm :
+              </p>
+              <Input
+                id="confirmation"
+                placeholder={farmProfile.farmName}
+                value={confirmationText}
+                onChange={(e) => setConfirmationText(e.target.value)}
+              />
+              <Button
+                className="w-full"
+                variant={"destructive"}
+                disabled={!isMatch}
+                onClick={() => {
+                  handleDeleteFarm();
+                }}
+              >
+                Delete Farm
+              </Button>
+            </ModalBody>
+            <ModalFooter />
+          </>
+        )}
+      </ModalContent>
+    </Modal>
     </div>
   );
 }

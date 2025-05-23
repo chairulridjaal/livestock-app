@@ -11,6 +11,7 @@ import {
   doc,
   getDocs,
   increment,
+  updateDoc,
   serverTimestamp
 } from "firebase/firestore";
 
@@ -64,7 +65,7 @@ function Record() {
       if (!animalId) return;
 
       try {
-        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+          const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
         const farmId = farmData.data()?.currentFarm;
         const animalRef = doc(db, "farms", farmId, "animals", animalId);
         const animalSnap = await getDoc(animalRef);
@@ -121,15 +122,11 @@ function Record() {
 
       const farmRef = doc(db, "farms", farmId, "meta", "stats");
 
-      await setDoc(
-        farmRef,
-        {
-          totalMilk: milk ? increment(Number(milk)) : increment(0),
-          totalFeed: increment(-Number(feed)),
-          lastUpdated: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      await updateDoc(farmRef, {
+        totalMilk: milk ? increment(Number(milk)) : increment(0),
+        totalFeed: increment(-Number(feed)),
+        lastUpdated: serverTimestamp(),
+      });
       addToast({
         title: "Record Saved",
         description: `Record for animal ${animalId} has been saved successfully.`,
@@ -142,6 +139,7 @@ function Record() {
       setFeed("");
       setMilk("");
       setNotes("");
+      window.location.reload();
     } catch (error) {
       console.error("Error saving to Firebase:", error);
       alert("Failed to save record.");

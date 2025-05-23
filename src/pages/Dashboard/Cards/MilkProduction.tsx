@@ -14,7 +14,6 @@ const MilkProductionChart = () => {
     const fetchMilkData = async () => {
       const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
       const farmId = farmData.data()?.currentFarm;
-
       const animalsSnapshot = await getDocs(collection(db, "farms", farmId, "animals"));
       const milkByDate: { [date: string]: number } = {};
 

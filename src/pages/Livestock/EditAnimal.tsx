@@ -100,7 +100,7 @@ export const createColumns = (navigate: ReturnType<typeof useNavigate>, animalId
     accessorKey: "weight",
     header: ({ column }) => (
       <div
-        className="flex items-center justify-center space-x-2"
+        className="flex items-center justify-center space-x-2" // Center the header content
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         <span>Weight</span>
@@ -114,134 +114,112 @@ export const createColumns = (navigate: ReturnType<typeof useNavigate>, animalId
           {weight as number} kg
         </div>
       );
-    },
-  },
-  {
-    accessorKey: "feed",
-    header: () => (
-      <div className="flex items-center justify-center space-x-2">
-        <span>Feed</span>
-      </div>
-    ),
-    cell: ({ row }) => {
-      const feed = row.getValue("feed");
-      return (
-        <div className="text-center">
-          {feed ? `${feed} kg` : "-"}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "milk",
-    header: () => (
-      <div className="flex items-center justify-center space-x-2">
-        <span>Milk</span>
-      </div>
-    ),
-    cell: ({ row }) => {
-      const milk = row.getValue("milk");
-      return (
-        <div className="text-center">
-          {milk ? `${milk} L` : "-"}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "health",
-    header: () => (
-      <div className="flex items-center justify-center space-x-2">
-        <span>Health</span>
-      </div>
-    ),
-    cell: ({ row }) => {
-      const health: string | undefined = row.getValue("health");
-      return (
-        <div className="text-center">
-          {health ? health : "-"}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "actions",
-    header: "",
-    cell: function ActionsCell({ row }) {
-      // Use a React component to allow hooks
-      const recordId =
-        row.original.id ||
-        (row.getValue("date") instanceof Timestamp
-          ? format((row.getValue("date") as Timestamp).toDate(), "yyyy-MM-dd")
-          : row.getValue("date") as string);
+      },
+      },
+      {
+        accessorKey: "feed",
+        header: () => (
+          <div
+            className="flex items-center justify-center space-x-2"
+          >
+            <span>Feed</span>
+          </div>
+        ),
+        cell: ({ row }) => {
+          const feed = row.getValue("feed");
+          return (
+            <div className="text-center">
+              {feed ? `${feed} kg` : "-"}
+            </div>
+          )
+          },
+          },
+          {
+            accessorKey: "milk",
+            header: () => (
+              <div
+                className="flex items-center justify-center space-x-2"
+              >
+                <span>Milk</span>
+              </div>
+            ),
+            cell: ({ row }) => {
+              const milk = row.getValue("milk");         
+              return (
+                <div className="text-center">
+                  {milk ? `${milk} L` : "-"}
+                </div>
+              );
+            },
+          },
+          {
+          accessorKey: "health",
+          header: () => (
+          <div
+            className="flex items-center justify-center space-x-2"
+          >
+            <span>Health</span>
+          </div>
+        ),
+        cell: ({ row }) => {
+          const health: string | undefined = row.getValue("health");
+          return (
+            <div className="text-center">
+              {health ? health : "-"}
+            </div>
+          );
+        },
+      },
+      {
+      accessorKey: "actions",
+      header: "",
+      cell: ({ row }) => {
+      const recordId = row.getValue("date") instanceof Timestamp
+        ? format((row.getValue("date") as Timestamp).toDate(), "yyyy-MM-dd")
+        : row.getValue("date") as string;
 
-      const [isOpen, setIsOpen] = React.useState(false);
-
-      const handleDeleteRecord = async (recordId: string) => {
+      const handleDeleteRecord = async () => {
+      if (!animalId || !recordId) return;
+      try {
         const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
         const farmId = farmData.data()?.currentFarm;
+        const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
+        await deleteDoc(recordRef);
 
-        const recordDocRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
-        await deleteDoc(recordDocRef);
         addToast({
           title: "Record Deleted",
-          description: `Record ${recordId} has been deleted successfully.`,
+          description: `Record for animal ${animalId} has been deleted successfully.`,
           color: "success",
         });
-      };
 
+        window.location.reload();
+      } catch (error) {
+        console.error("Error deleting record:", error);
+        addToast({
+          title: "Error",
+          description: "Failed to delete record.",
+          color: "danger",
+        });
+      }
+    };
       return (
-        <>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate(`/livestock/edit/${animalId}/${recordId}`)}>Edit</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsOpen(true)}>Delete</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Modal backdrop="opaque" isOpen={isOpen} onClose={() => setIsOpen(false)}>
-            <ModalContent>
-              {(onClose) => (
-                <>
-                  <ModalHeader className="flex flex-col gap-1">Confirm Deletion</ModalHeader>
-                  <ModalBody>
-                    <p>
-                      Are you sure you want to delete <strong>{recordId}</strong>?
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      This action cannot be undone.
-                    </p>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button variant="secondary" onClick={onClose}>
-                      Cancel
-                    </Button>
-                    <Button
-                      className="text-red-600 hover:text-red-600"
-                      variant="ghost"
-                      onClick={() => {
-                        handleDeleteRecord(recordId);
-                        onClose();
-                      }}
-                    >
-                      Yes, Delete
-                    </Button>
-                  </ModalFooter>
-                </>
-              )}
-            </ModalContent>
-          </Modal>
-        </>
-      );
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate(`/livestock/edit/${animalId}/${recordId}`)}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDeleteRecord}>Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
     },
   },
-];
+]
 
 export function RecordsTable({ data, animalId, navigate }: { data: Records[]; animalId: string; navigate: ReturnType<typeof useNavigate> }) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -319,8 +297,7 @@ const EditAnimal = () => {
         const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
         const farmId = farmData.data()?.currentFarm;
 
-        // Fetch breeds from Firestore (farm/information/breeds collection)
-        const breedsCollection = collection(db, "farm", "farm-001", "meta", "information", "breeds");
+        const breedsCollection = collection(db, "farms", farmId, "meta", "information", "breeds");
         const breedsSnapshot = await getDocs(breedsCollection);
         const breedList = breedsSnapshot.docs.map(doc => doc.data().name); // Assuming breed name is stored in the "name" field
         setBreeds(breedList); // Set the breeds state
@@ -369,7 +346,9 @@ const EditAnimal = () => {
     }
 
     try {
-      const animalDocRef = doc(db, "animals", animalId as string);
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      const animalDocRef = doc(db, "farms", farmId, "animals", animalId as string);
       await updateDoc(animalDocRef, {
         name,
         breed,
@@ -396,16 +375,17 @@ const EditAnimal = () => {
 
   const handleDelete = async () => {  
     try {
-      // Delete all records of the animal
-      const recordsRef = collection(db, "animals", animalId as string, "records");
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      const recordsRef = collection(db, "farms", farmId, "animals", animalId as string, "records");
       const recordsSnapshot = await getDocs(recordsRef);
   
       for (const recordDoc of recordsSnapshot.docs) {
-        await deleteDoc(doc(db, "animals", animalId as string, "records", recordDoc.id));
+        await deleteDoc(doc(db, "farms", farmId, "animals", animalId as string, "records", recordDoc.id));
       }
   
       // Delete the animal document
-      await deleteDoc(doc(db, "animals", animalId as string));
+      await deleteDoc(doc(db, "farms", farmId, "animals", animalId as string));
   
       addToast({
         title: "Animal Deleted",

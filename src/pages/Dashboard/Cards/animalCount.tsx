@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, limit, getDoc, doc } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
@@ -18,6 +17,8 @@ const AnimalCount = () => {
         const farmId = farmData.data()?.currentFarm;
 
         // Fetch current animal count from the "animals" collection
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
         const animalsSnapshot = await getDocs(collection(db, "farms", farmId, "animals"));
         setAnimalCount(animalsSnapshot.docs.length);
 
