@@ -28,11 +28,6 @@ const NotFound = () => {
               alt="404 cow"
               className="w-48 h-auto object-contain"
             />
-            <img
-              src="/sadcow.webp"
-              alt="404 cow"
-              className="w-48 h-auto object-contain"
-            />
           </div>
           <h1 className="text-8xl font-black text-red-600 dark:text-red-400">
             404

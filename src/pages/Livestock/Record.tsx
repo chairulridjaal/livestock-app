@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { db } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import { QRScanner } from "@/components/QRScanner";
 import { useCallback } from "react";
 import {addToast} from "@heroui/toast";
@@ -45,7 +44,9 @@ function Record() {
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "animals"));
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+        const snapshot = await getDocs(collection(db, "farms", farmId, "animals"));
         const animalList = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -64,7 +65,9 @@ function Record() {
       if (!animalId) return;
 
       try {
-        const animalRef = doc(db, "animals", animalId);
+          const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+        const animalRef = doc(db, "farms", farmId, "animals", animalId);
         const animalSnap = await getDoc(animalRef);
 
         if (animalSnap.exists()) {
@@ -103,8 +106,10 @@ function Record() {
     if (milk && (isNaN(Number(milk)) || Number(milk) < 0)) return;
 
     try {
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
       const recordId = today;
-      const recordRef = doc(db, "animals", animalId, "records", recordId);
+      const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
 
       await setDoc(recordRef, {
         date: Timestamp.fromDate(new Date(today)),
@@ -115,7 +120,7 @@ function Record() {
         notes,
       });
 
-      const farmRef = doc(db, "farm", "stats");
+      const farmRef = doc(db, "farms", farmId, "meta", "stats");
 
       await updateDoc(farmRef, {
         totalMilk: milk ? increment(Number(milk)) : increment(0),
@@ -134,6 +139,7 @@ function Record() {
       setFeed("");
       setMilk("");
       setNotes("");
+      window.location.reload();
     } catch (error) {
       console.error("Error saving to Firebase:", error);
       alert("Failed to save record.");

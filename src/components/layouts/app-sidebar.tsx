@@ -35,8 +35,14 @@ const data = {
       items: [
         { title: "Dashboard", url: "/", isActive: false },
         { title: "Analytics", url: "/analytics", isActive: false },
-        { title: "Farm", url: "/farm", isActive: false },
       ],
+    },
+    {
+      title: "Farm",
+      url: "/",
+      items: [
+        { title: "Settings", url: "/farm/settings", isActive: false },
+        { title: "Manage Stock", url: "/farm/manage", isActive: false },      ],
     },
     {
       title: "Livestock",
@@ -135,27 +141,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        <SidebarMenuButton
-          size="lg"
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-          onClick={() => window.location.href = '/'}
-        >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <Tractor className="size-6" />
-          </div>
-          <div className="flex flex-col gap-0.5 leading-none">
-            <span className="font-bold">FarmHub Inc.</span>
-          </div>
-        </SidebarMenuButton>
-
-=======
         <TeamSwitcher teams={farms} />
->>>>>>> Stashed changes
-=======
-        <TeamSwitcher teams={farms} />
->>>>>>> Stashed changes
         {/* Search input */}
         <SearchForm onSearchChange={setSearchQuery} />
       </SidebarHeader>

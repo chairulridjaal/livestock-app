@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { db } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import {
   doc,
   deleteDoc,
@@ -19,6 +19,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  addToast,
 } from "@heroui/react"
 import {
   Card,
@@ -32,7 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
+import { Copy } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -89,11 +90,6 @@ export default function FarmSettings() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-<<<<<<< Updated upstream
-
-  const farmRef = doc(db, "farm", "farm-001", "meta", "information");
-  const breedsRef = collection(db, "farm", "farm-001", "meta", "information", "breeds");
-=======
   const [joinCode, setJoinCode] = useState("");
   const [copied, setCopied] = useState(false);
   const { isOpen: isModalOpen, onOpen, onOpenChange } = useDisclosure()
@@ -104,17 +100,10 @@ export default function FarmSettings() {
     setConfirmationText(""); // Clear input on close
     onOpenChange();
   };
-  
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-<<<<<<< Updated upstream
-=======
         const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
         const farmId = farmData.data()?.currentFarm;
         const farmDoc = await getDoc(doc(db, "farms", farmId));
@@ -122,7 +111,6 @@ export default function FarmSettings() {
         const farmRef = doc(db, "farms", farmId, "meta", "information");
         const breedsRef = collection(db, "farms", farmId, "meta", "information", "breeds");
 
->>>>>>> Stashed changes
         const snap = await getDoc(farmRef);
         if (snap.exists()) {
           const data = snap.data();
@@ -183,6 +171,14 @@ export default function FarmSettings() {
 
   const handleSaveProfile = async () => {
     try {
+      // Get current farmId from user doc
+      const currentUserId = auth.currentUser?.uid as string;
+      const userDocRef = doc(db, "users", currentUserId);
+      const userDoc = await getDoc(userDocRef);
+      const farmId = userDoc.data()?.currentFarm;
+      if (!farmId) throw new Error("No current farm found for user.");
+      const farmRef = doc(db, "farms", farmId, "meta", "information");
+
       await setDoc(farmRef, {
         ...farmProfile,
         lastUpdated: serverTimestamp(),
@@ -264,6 +260,14 @@ const handleDeleteFarm = async () => {
   const handleNewBreed = async () => {
     if (!newBreed.name) return;
     try {
+      // Get current farmId from user doc
+      const currentUserId = auth.currentUser?.uid as string;
+      const userDocRef = doc(db, "users", currentUserId);
+      const userDoc = await getDoc(userDocRef);
+      const farmId = userDoc.data()?.currentFarm;
+      if (!farmId) throw new Error("No current farm found for user.");
+      const breedsRef = collection(db, "farms", farmId, "meta", "information", "breeds");
+
       await addDoc(breedsRef, {
         ...newBreed,
         createdAt: serverTimestamp(),
@@ -279,8 +283,7 @@ const handleDeleteFarm = async () => {
         }))
       );
     } catch (err) {
-      console.error("Add breed error:", err);
-      setStatus("❌ Failed to add breed.");
+      console.error("Add breed error:", err);    
     }
   };
 
@@ -423,6 +426,25 @@ const handleDeleteFarm = async () => {
         <Card className="w-full sm:w-[320px] flex-1 min-w-[260px]">
           <CardHeader><CardTitle>Invite Admin</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Join Code</Label>
+
+            <div
+              onClick={() => {
+                if (!joinCode) return;
+                navigator.clipboard.writeText(joinCode);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex items-center gap-2 w-fit px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition cursor-pointer select-all"
+              title="Click to copy"
+            >
+              <span className="font-mono text-sm">
+                {copied ? "Copied!" : joinCode || "N/A"}
+              </span>
+              <Copy className="h-4 w-4 text-gray-600" />
+            </div>
+          </div>
             <div>
               <Label htmlFor="email">Email</Label>
               <Input

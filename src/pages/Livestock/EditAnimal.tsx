@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { add, format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
-import { db } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -177,6 +177,31 @@ export const createColumns = (navigate: ReturnType<typeof useNavigate>, animalId
       const recordId = row.getValue("date") instanceof Timestamp
         ? format((row.getValue("date") as Timestamp).toDate(), "yyyy-MM-dd")
         : row.getValue("date") as string;
+
+      const handleDeleteRecord = async () => {
+      if (!animalId || !recordId) return;
+      try {
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+        const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
+        await deleteDoc(recordRef);
+
+        addToast({
+          title: "Record Deleted",
+          description: `Record for animal ${animalId} has been deleted successfully.`,
+          color: "success",
+        });
+
+        window.location.reload();
+      } catch (error) {
+        console.error("Error deleting record:", error);
+        addToast({
+          title: "Error",
+          description: "Failed to delete record.",
+          color: "danger",
+        });
+      }
+    };
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -188,7 +213,7 @@ export const createColumns = (navigate: ReturnType<typeof useNavigate>, animalId
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate(`/livestock/edit/${animalId}/${recordId}`)}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => console.log(`Delete record ${recordId}`)}>Delete</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDeleteRecord}>Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -269,14 +294,16 @@ const EditAnimal = () => {
       }
 
       try {
-        // Fetch breeds from Firestore (farm/information/breeds collection)
-        const breedsCollection = collection(db, "farm", "farm-001", "meta", "information", "breeds");
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+
+        const breedsCollection = collection(db, "farms", farmId, "meta", "information", "breeds");
         const breedsSnapshot = await getDocs(breedsCollection);
         const breedList = breedsSnapshot.docs.map(doc => doc.data().name); // Assuming breed name is stored in the "name" field
         setBreeds(breedList); // Set the breeds state
 
         // Fetch the animal data
-        const animalDocRef = doc(db, "animals", animalId);
+        const animalDocRef = doc(db, "farms", farmId, "animals", animalId);
         const animalDocSnap = await getDoc(animalDocRef);
 
         if (animalDocSnap.exists()) {
@@ -290,7 +317,7 @@ const EditAnimal = () => {
           console.error("No such animal document found!");
         }
 
-        const recordsRef = collection(db, "animals", animalId, "records");
+        const recordsRef = collection(db, "farms", farmId, "animals", animalId, "records");
         const recordsQuery = query(recordsRef, orderBy("date", "desc"));
         const recordsSnapshot = await getDocs(recordsQuery);
         const recordsData = recordsSnapshot.docs.map(doc => ({
@@ -319,7 +346,9 @@ const EditAnimal = () => {
     }
 
     try {
-      const animalDocRef = doc(db, "animals", animalId as string);
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      const animalDocRef = doc(db, "farms", farmId, "animals", animalId as string);
       await updateDoc(animalDocRef, {
         name,
         breed,
@@ -346,16 +375,17 @@ const EditAnimal = () => {
 
   const handleDelete = async () => {  
     try {
-      // Delete all records of the animal
-      const recordsRef = collection(db, "animals", animalId as string, "records");
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      const recordsRef = collection(db, "farms", farmId, "animals", animalId as string, "records");
       const recordsSnapshot = await getDocs(recordsRef);
   
       for (const recordDoc of recordsSnapshot.docs) {
-        await deleteDoc(doc(db, "animals", animalId as string, "records", recordDoc.id));
+        await deleteDoc(doc(db, "farms", farmId, "animals", animalId as string, "records", recordDoc.id));
       }
   
       // Delete the animal document
-      await deleteDoc(doc(db, "animals", animalId as string));
+      await deleteDoc(doc(db, "farms", farmId, "animals", animalId as string));
   
       addToast({
         title: "Animal Deleted",

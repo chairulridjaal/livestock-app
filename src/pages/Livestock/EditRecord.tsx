@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { db } from "../../lib/firebase";
+import { db, auth } from "../../lib/firebase";
 import { addToast } from "@heroui/toast";
 import {
   doc,
   getDoc,
+  deleteDoc, 
   updateDoc,
 } from "firebase/firestore";
-
+import { 
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+ } from "@heroui/react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 
 function EditRecord() {
   const { animalId, recordId } = useParams();
@@ -33,13 +41,16 @@ function EditRecord() {
   const [animalType, setAnimalType] = useState("");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const fetchRecord = async () => {
       if (!animalId || !recordId) return;
 
       try {
-        const recordRef = doc(db, "animals", animalId, "records", recordId);
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+        const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
         const recordSnap = await getDoc(recordRef);
         if (recordSnap.exists()) {
           const data = recordSnap.data();
@@ -51,7 +62,7 @@ function EditRecord() {
           setDate(data.date?.toDate().toISOString().split("T")[0] || "");
         }
 
-        const animalRef = doc(db, "animals", animalId);
+        const animalRef = doc(db,"farms", farmId, "animals", animalId);
         const animalSnap = await getDoc(animalRef);
         if (animalSnap.exists()) {
           const animalData = animalSnap.data() as { type: string };
@@ -78,7 +89,9 @@ function EditRecord() {
     if (!animalId || !recordId) return;
 
     try {
-      const recordRef = doc(db, "animals", animalId, "records", recordId);
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
       await updateDoc(recordRef, {
         weight: parseFloat(weight),
         health,
@@ -104,6 +117,31 @@ function EditRecord() {
     }
   };
 
+  const handleDeleteRecord = async () => {
+    if (!animalId || !recordId) return;
+    try {
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
+      await deleteDoc(recordRef);
+
+      addToast({
+        title: "Record Deleted",
+        description: `Record for animal ${animalId} has been deleted successfully.`,
+        color: "success",
+      });
+
+      navigate("/livestock/edit/" + animalId); 
+    } catch (error) {
+      console.error("Error deleting record:", error);
+      addToast({
+        title: "Error",
+        description: "Failed to delete record.",
+        color: "danger",
+      });
+    }
+  };
+
   if (loading) return <p className="text-center mt-10">Loading record...</p>;
 
   return (
@@ -113,7 +151,7 @@ function EditRecord() {
           <CardTitle className="text-2xl font-bold">Edit Record</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-4">
             <div className="space-y-1">
               <Label>Animal ID</Label>
               <Input type="text" value={animalId} disabled />
@@ -175,10 +213,45 @@ function EditRecord() {
                 rows={3}
               />
             </div>
-
-            <Button type="submit">Update Record</Button>
+            
+            <Modal backdrop="opaque" isOpen={isOpen} onClose={() => setIsOpen(false)}>
+              <ModalContent>
+                {(onClose) => (
+                  <>
+                    <ModalHeader className="flex flex-col gap-1">Confirm Deletion</ModalHeader>
+                    <ModalBody>
+                      <p>
+                      Are you sure you want to delete this animal's record on <strong>{recordId} </strong>?
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        This action cannot be undone.
+                      </p>
+                    </ModalBody>
+                    <ModalFooter>
+                      <Button variant="secondary" onClick={onClose}>
+                        Cancel
+                      </Button>
+                      <Button className="text-red-600 hover:text-red-600" variant="ghost" onClick={() => { handleDeleteRecord(); onClose(); }}>
+                        Yes, Delete
+                      </Button>
+                    </ModalFooter>
+                  </>
+                )}
+              </ModalContent>
+            </Modal>
           </form>
         </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button variant="destructive" onClick={() => setIsOpen(true)}>
+            Delete Record
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate(-1)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit}>Save Changes</Button>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );

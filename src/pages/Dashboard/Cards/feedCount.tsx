@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { collection, query, orderBy, limit, getDocs, getDoc, doc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react";
@@ -16,8 +16,10 @@ const FeedCount = () => {
   useEffect(() => {
     const fetchFeedStats = async () => {
       try {
-        const recordsRef = collection(db, "farm", "stats", "records");
-        const currentFeedRef = doc(db,"farm", "stats");
+        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = farmData.data()?.currentFarm;
+        const recordsRef = collection(db, "farms", farmId, "meta", "stats", "records");
+        const currentFeedRef = doc(db,"farms", farmId, "meta", "stats");
 
         const snapshot = await getDoc(currentFeedRef);
         if (snapshot.exists()) {
