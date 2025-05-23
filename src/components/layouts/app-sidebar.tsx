@@ -1,12 +1,9 @@
 import * as React from "react";
-import { useEffect } from "react";
-import { ChevronRight, Leaf } from "lucide-react";
+import { ChevronRight, Tractor } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { SearchForm } from "@/components/layouts/search-form";
 import { NavUser } from "@/components/layouts/nav-user";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,7 +22,6 @@ import {
   SidebarRail,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { TeamSwitcher } from "../ui/team-switcher";
 
 const data = {
   navMain: [
@@ -42,7 +38,8 @@ const data = {
       url: "/",
       items: [
         { title: "Settings", url: "/farm/settings", isActive: false },
-        { title: "Manage Stock", url: "/farm/manage", isActive: false },      ],
+        { title: "Manage Stocks", url: "/farm/manage", isActive: false },
+      ],
     },
     {
       title: "Livestock",
@@ -58,18 +55,10 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
-  type Farm = {
-    id: string;
-    name: string;
-    logo: React.ElementType;
-    plan: string;
-  };
-  const [farms, setFarms] = React.useState<Farm[]>([]);
-
   const { user } = useAuth();
   
   const [searchQuery, setSearchQuery] = React.useState("");
-  
+
   const userData = {
     user: {
       name: user?.name || "User",
@@ -81,52 +70,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const checkIsActive = (itemUrl: string) => {
     return location.pathname.startsWith(itemUrl);
   };
-
-  useEffect(() => {
-    const fetchFarms = async () => {
-      if (!user?.uid) return;
-
-      try {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          const farmIds: string[] = userData.farms || [];
-          const currentFarmId: string = userData.currentFarm;
-
-          const farmDataList: {
-            id: string;
-            name: string;
-            logo: React.ElementType;
-            plan: string;
-          }[] = [];
-
-          for (const id of farmIds) {
-            const farmRef = doc(db, "farms", id);
-            const farmSnap = await getDoc(farmRef);
-
-            farmDataList.push({
-              id,
-              name: farmSnap.exists() ? farmSnap.data().farmName || "Unnamed Farm" : `Unknown Farm (${id.slice(-4)})`,
-              logo: Leaf,
-              plan: farmSnap.exists() ? farmSnap.data().plan || "Free" : "Free",
-            });
-          }
-
-          const sortedFarms = farmDataList.sort((a, b) => {
-            return a.id === currentFarmId ? -1 : b.id === currentFarmId ? 1 : 0;
-          });
-
-          setFarms(sortedFarms);
-        }
-      } catch (err) {
-        console.error("Error fetching farms:", err);
-      }
-    };
-
-    fetchFarms();
-  }, [user]);
 
   // Filter nav data based on search input
   const filteredData = data.navMain
@@ -141,7 +84,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={farms} />
+        <SidebarMenuButton
+          size="lg"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          onClick={() => window.location.href = '/'}
+        >
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <img
+              src="/logo-circle-black.png"
+              alt="HerdSphere Logo"
+              className="h-10 w-auto object-contain rounded"
+            />
+          </div>
+          <div className="flex flex-col gap-0.5 leading-none">
+            <span className="font-bold">HerdSphere Inc.</span>
+          </div>
+        </SidebarMenuButton>
+
         {/* Search input */}
         <SearchForm onSearchChange={setSearchQuery} />
       </SidebarHeader>
