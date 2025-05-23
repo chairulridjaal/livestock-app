@@ -135,7 +135,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={farms} />
-        {/* Search input */}
       </SidebarHeader>
       <SidebarContent className="gap-0">
         <SearchForm onSearchChange={setSearchQuery} />

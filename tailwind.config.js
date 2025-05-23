@@ -21,6 +21,22 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+			sidebar: {
+				DEFAULT: '#ffffff', // light background
+				foreground: '#1f2937', // text-gray-800
+				accent: '#e5e7eb',
+				'accent-foreground': '#111827',
+				border: '#e5e7eb',
+				ring: '#d1d5db',
+			},
+			'dark-sidebar': {
+				DEFAULT: '#1f2937', // dark background
+				foreground: '#f9fafb',
+				accent: '#374151',
+				'accent-foreground': '#f9fafb',
+				border: '#4b5563',
+				ring: '#6b7280',
+			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

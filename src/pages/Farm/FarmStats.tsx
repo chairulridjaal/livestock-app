@@ -511,7 +511,7 @@ const handleDeleteFarm = async () => {
               className="flex items-center gap-2 w-fit px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition cursor-pointer select-all"
               title="Click to copy"
             >
-              <span className="font-mono text-sm">
+              <span className="font-mono text-sm text-black">
                 {copied ? "Copied!" : joinCode || "N/A"}
               </span>
               <Copy className="h-4 w-4 text-gray-600" />
