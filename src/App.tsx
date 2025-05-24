@@ -10,9 +10,9 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import Analytics from "./pages/Dashboard/Analytics";
 import Record from "./pages/Livestock/Record";
 import AddAnimal from "./pages/Livestock/AddAnimal";
-import AnimalList from "./pages/Livestock/AnimalList";
+import AnimalList from "./pages/Livestock/Animal List/page";
 import Livestock from "./pages/Livestock/Livestock";
-import EditAnimal from "./pages/Livestock/EditAnimal";
+import EditAnimal from "./pages/Livestock/Edit Animal/EditAnimal";
 import FarmStats from "./pages/Farm/FarmStats";
 import ManageStock from "./pages/Farm/manageStock";
 import UploadCsv from "./pages/UploadCsv";
@@ -24,6 +24,7 @@ import NotFound from "./components/404";
 import ScanPage from "./pages/scanpage";
 import EditRecord from "./pages/Livestock/EditRecord";
 import ChooseFarm from "./pages/guard/choosefarm";
+import Farm from "./pages/Farm/Farm";
 
 function App() {
   const { user, isAuthChecked } = useAuth();
@@ -95,13 +96,15 @@ function App() {
         <Route path="/livestock/record" element={user ? <Layout><Record /></Layout> : <Login />} />
         <Route path="/livestock/add" element={user ? <Layout><AddAnimal /></Layout> : <Login />} />
         <Route path="/livestock/list" element={user ? <Layout><AnimalList /></Layout> : <Login />} />
-        <Route path="/livestock/edit" element={user ? <Layout><AnimalList /></Layout> : <Login />} />
-        <Route path="/livestock/edit/:animalId" element={user ? <Layout><EditAnimal /></Layout> : <Login />} />
-        <Route path="/livestock/edit/:animalId/:recordId" element={user ? <Layout><EditRecord /></Layout> : <Login />} />
+        <Route path="/livestock/animals" element={user ? <Layout><AnimalList /></Layout> : <Login />} />
+        <Route path="/livestock/animals/:animalId" element={user ? <Layout><EditAnimal /></Layout> : <Login />} />
+        <Route path="/livestock/animals/:animalId/:recordId" element={user ? <Layout><EditRecord /></Layout> : <Login />} />
         <Route path="/seed" element={user ? <Layout><UploadCsv /></Layout> : <Login />} />
+        <Route path="/farm" element={user ? <Layout><Farm /></Layout> : <Login />} />
         <Route path="/farm/settings" element={user ? <Layout><FarmStats /></Layout> : <Login />} />
         <Route path="/farm/manage" element={user ? <Layout><ManageStock /></Layout> : <Login />} />
         <Route path="/farm/overview" element={user ? <Layout><Analytics /></Layout> : <Login />} />
+        {/* <Route path="/demo" element={user ? <Layout><AnimalList /></Layout> : <Login />} /> */}
 
         <Route path="*" element={<NotFound />} />
       </Routes>

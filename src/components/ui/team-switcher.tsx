@@ -276,7 +276,10 @@ export function TeamSwitcher({
                   // 🔒 Close dropdown when opening modal
                   setDropdownOpen(false)
 
-                  onOpen()
+                  // ✅ Delay to fix mobile close bug
+                  setTimeout(() => {
+                    onOpen()
+                  }, 100)
                 }}
               >
                 <div className="flex size-6 items-center justify-center rounded-md border bg-background">

@@ -157,12 +157,8 @@ function AddAnimal() {
         description: `Animal ${name} has been added successfully.`,
         color: "success",
       })
-
-      setName("")
-      setBreed("")
-      setDOB("")
-      setType("")
-      setIsDownloaded(false)
+      
+      window.location.reload()
     } catch (error) {
       console.error("Error adding animal:", error)
       alert("Failed to add animal.")

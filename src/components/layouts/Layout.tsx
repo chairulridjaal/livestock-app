@@ -71,7 +71,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </header>
         <Providers>
-          <div className="flex flex-1 flex-col gap-6 p-6 max-w-full overflow-auto min-h-screen mt-0">
+          <div className="flex flex-1 flex-col px-6 py-2gap-6 max-w-full overflow-auto min-h-screen mt-0">
             {children}
           </div>
         </Providers>

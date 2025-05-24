@@ -3,33 +3,33 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"; // Shadcn UI Input
 import { Link } from "react-router-dom";
 
-const Dashboard = () => {
+const Farm = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  const dashboardItems = [
+const dashboardItems = [
     {
-      title: "Farm Overview",
-      description: "See analytics and reports of your farm.",
-      icon: "📈",
-      link: "/farm/overview",
+        title: "Overview",
+        description: "See analytics and reports of your farm.",
+        icon: "📈",
+        link: "/farm/overview",
     },
     {
-      title: "Livestock Management",
-      description: "Manage all your livestock efficiently.",
-      icon: "🐄",
-      link: "/livestock",
+        title: "Stock Management",
+        description: "Manage all your livestock efficiently.",
+        icon: "🌾",
+        link: "/farm/manage",
     },
     {
-      title: "Farm Management",
-      description: "Track and manage your farm.",
-      icon: "🌾",
-      link: "/farm",
+        title: "Farm Settings",
+        description: "Track and manage farm stock supplies.",
+        icon: "⚙️",
+        link: "/farm/settings",
     },
-  ];
+];
 
   // Filter dashboard items based on search query
   const filteredItems = dashboardItems.filter(item =>
@@ -72,4 +72,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Farm;

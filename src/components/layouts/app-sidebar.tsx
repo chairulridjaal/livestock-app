@@ -31,7 +31,7 @@ const data = {
       url: "/",
       icon: Tractor,
       items: [
-        { title: "Farm Overview", url: "/farm/overview", isActive: false },
+        { title: "Overview", url: "/farm/overview", isActive: false },
         { title: "Manage Stock", url: "/farm/manage", isActive: false },      
         { title: "Farm Settings", url: "/farm/settings", isActive: false },
       ],

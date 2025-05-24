@@ -44,9 +44,13 @@ function Dashboard() {
   }, []);
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Analytics</h1>
-
+    <div className="p-6 space-y-2">
+      <div>
+      <h1 className="text-3xl font-bold">Farm Overview</h1>
+      <p className="text-muted-foreground py-2">
+        Here you can view key trends and statistics about your farm.
+      </p>
+      </div>
       {/* Stats Section */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <AnimalCount />

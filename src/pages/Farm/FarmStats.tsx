@@ -101,6 +101,7 @@ export default function FarmSettings() {
   const [inviteLink, setInviteLink] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [joinCode, setJoinCode] = useState("");
+  const [admins, setAdmins] = useState<{ id: string; name: string; email: string }[]>([]);
   const [copied, setCopied] = useState(false);
   const { isOpen: isModalOpen, onOpen, onOpenChange } = useDisclosure()
   const [confirmationText, setConfirmationText] = useState("");
@@ -120,6 +121,18 @@ export default function FarmSettings() {
         setJoinCode(farmDoc.data()?.joinCode || "");
         const farmRef = doc(db, "farms", farmId, "meta", "information");
         const breedsRef = collection(db, "farms", farmId, "meta", "information", "breeds");
+
+        const adminsSnap = await getDocs(collection(db, "users"));
+        const adminsList = adminsSnap.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.name || "Unknown",
+            email: data.email || "No email",
+          };
+        }
+        );
+        setAdmins(adminsList);
 
         const snap = await getDoc(farmRef);
         if (snap.exists()) {
@@ -377,214 +390,223 @@ const handleDeleteFarm = async () => {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl w-full mx-auto">
-      <div className="flex flex-wrap gap-4">
-        {/* Farm Profile */}
-        <Card className="w-full">
-          <CardHeader><CardTitle>Farm Profile</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="relative z-0 rounded overflow-hidden">
-              <MapContainer
-                center={locationCoords}
-                zoom={16}
-                style={{ height: "200px", width: "100%", zIndex: 0 }}
-              >
-                <TileLayer
-                  attribution='&copy; OpenStreetMap contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <Marker position={locationCoords}>
-                  <Popup>{farmProfile.farmName || "Farm Location"}</Popup>
-                </Marker>
-              </MapContainer>
-            </div>
-            <div>
-              <Label htmlFor="farmName">Farm Name</Label>
-              <Input
-                id="farmName"
-                name="farmName"
-                value={farmProfile.farmName}
-                onChange={handleProfileChange}
-                placeholder="Enter farm name"
-              />
-            </div>
-            <div>
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                name="location"
-                value={farmProfile.location}
-                onChange={handleProfileChange}
-                placeholder="Enter farm location"
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button onClick={handleSaveProfile}>Save Profile</Button>
-            {/* <Button onClick={handleUseCurrentLocation} variant="outline">
-              Change to Current Location
-            </Button> */}
-            <Button variant="destructive" onClick={onOpen}>
-              Delete Farm
-            </Button>
-          </CardFooter>
-        </Card>
+  <div className="p-6 max-w-5xl w-full mx-auto space-y-6">
+    {/* Farm Profile */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Farm Profile</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="relative z-0 rounded overflow-hidden">
+          <MapContainer
+            center={locationCoords}
+            zoom={16}
+            style={{ height: "200px", width: "100%", zIndex: 0 }}
+          >
+            <TileLayer
+              attribution='&copy; OpenStreetMap contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={locationCoords}>
+              <Popup>{farmProfile.farmName || "Farm Location"}</Popup>
+            </Marker>
+          </MapContainer>
+        </div>
 
-        {/* Breed Management (Simplified) */}
-        <Card className="w-full md:w-[50%] flex-1 min-w-[300px]">
-          <CardHeader>
-            <CardTitle>Breeds</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Breed List */}
-            <div className="space-y-2">
-              {breeds.map((breed) => (
-                <div key={breed.id} className="border px-3 py-2 rounded">
-                  <p className="font-medium">{breed.name}</p>
+        <div>
+          <Label htmlFor="farmName">Farm Name</Label>
+          <Input
+            id="farmName"
+            name="farmName"
+            value={farmProfile.farmName}
+            onChange={handleProfileChange}
+            placeholder="Enter farm name"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="location">Location</Label>
+          <Input
+            id="location"
+            name="location"
+            value={farmProfile.location}
+            onChange={handleProfileChange}
+            placeholder="Enter farm location"
+          />
+        </div>
+
+        <div>
+          <Label className="text-sm font-medium">Join Code</Label>
+          <div
+            onClick={() => {
+              if (!joinCode) return;
+              navigator.clipboard.writeText(joinCode);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="flex items-center gap-2 w-fit px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 cursor-pointer select-all"
+            title="Click to copy"
+          >
+            <span className="font-mono text-sm text-black">
+              {copied ? "Copied!" : joinCode || "N/A"}
+            </span>
+            <Copy className="h-4 w-4 text-gray-600" />
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-between flex-wrap gap-2">
+        <Button onClick={handleSaveProfile}>Save Profile</Button>
+        <Button variant="destructive" onClick={onOpen}>
+          Delete Farm
+        </Button>
+      </CardFooter>
+    </Card>
+
+    {/* Two-Column Section */}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Breeds Management */}
+      <Card className="flex flex-col">
+        <CardHeader>
+          <CardTitle>Breeds</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="max-h-40 overflow-y-auto border rounded-md divide-y">
+            {breeds.length === 0 ? (
+              <p className="text-sm text-muted-foreground px-3 py-2">No breeds yet.</p>
+            ) : (
+              breeds.slice(0, 5).map((breed) => (
+                <div key={breed.id} className="px-3 py-2">
+                  {breed.name}
+                </div>
+              ))
+            )}
+          </div>
+
+          {showAddForm ? (
+            <div className="space-y-2 border-t pt-4">
+              <div>
+                <Label htmlFor="breedName">Breed Name</Label>
+                <Input
+                  id="breedName"
+                  value={newBreed.name}
+                  onChange={(e) =>
+                    setNewBreed((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="e.g. Holstein"
+                />
+              </div>
+              <div>
+                <Label htmlFor="breedDesc">Description</Label>
+                <Textarea
+                  id="breedDesc"
+                  value={newBreed.description}
+                  onChange={(e) =>
+                    setNewBreed((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  placeholder="Optional"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleNewBreed}>Add</Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setNewBreed({ name: "", description: "" });
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button variant="outline" onClick={() => setShowAddForm(true)}>
+              + Add Breed
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Invite Members */}
+      <Card className="flex flex-col">
+        <CardHeader>
+          <CardTitle>Current Members</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Admin List */}
+          {admins.length > 0 ? (
+            <div className="border rounded-md divide-y max-h-48 overflow-y-auto">
+              {admins.map((admin) => (
+                <div key={admin.id} className="px-3 py-2 text-sm space-y-1">
+                  <p className="font-semibold">{admin.name}</p>
+                  <p className="text-muted-foreground">{admin.email}</p>
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No members yet.</p>
+          )}
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleGenerateInvite}>Generate Invite Link</Button>
+        </CardFooter>
+      </Card>
 
-            {/* Toggle Add Form */}
-            {showAddForm ? (
-              <div className="space-y-2 border-t pt-4">
-                <div>
-                  <Label htmlFor="breedName">Breed Name</Label>
-                  <Input
-                    id="breedName"
-                    value={newBreed.name}
-                    onChange={(e) =>
-                      setNewBreed((prev) => ({ ...prev, name: e.target.value }))
-                    }
-                    placeholder="e.g. Holstein"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="breedDesc">Description</Label>
-                  <Textarea
-                    id="breedDesc"
-                    value={newBreed.description}
-                    onChange={(e) =>
-                      setNewBreed((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    placeholder="Optional"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleNewBreed}>Add</Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setShowAddForm(false);
-                      setNewBreed({ name: "", description: "" });
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <Button variant="outline" onClick={() => setShowAddForm(true)}>
-                + Add Breed
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+      {/* Leave Farm */}
+      <Card className="flex flex-col">
+        <CardHeader>
+          <CardTitle>Leave Farm</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Leaving the farm will remove you from all farm activities.
+          </p>
+        </CardContent>
+        <CardFooter>
+          <Button
+            variant="destructive"
+            onClick={async () => {
+              const currentUserId = auth.currentUser?.uid as string;
+              const userDocRef = doc(db, "users", currentUserId);
+              const userDocSnap = await getDoc(userDocRef);
+              const farmId = userDocSnap.data()?.currentFarm;
+              if (farmId && currentUserId) {
+                await handleLeaveFarm(farmId, currentUserId);
+              }
+            }}
+          >
+            Leave Farm
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
 
-        {/* Invite Admin */}
-        <Card className="w-full sm:w-[320px] flex-1 min-w-[260px]">
-          <CardHeader><CardTitle>Invite Admin</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Join Code</Label>
+    {/* Status Message */}
+    {status && (
+      <p className="text-sm text-muted-foreground text-center">{status}</p>
+    )}
 
-            <div
-              onClick={() => {
-                if (!joinCode) return;
-                navigator.clipboard.writeText(joinCode);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
-              className="flex items-center gap-2 w-fit px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition cursor-pointer select-all"
-              title="Click to copy"
-            >
-              <span className="font-mono text-sm text-black">
-                {copied ? "Copied!" : joinCode || "N/A"}
-              </span>
-              <Copy className="h-4 w-4 text-gray-600" />
-            </div>
-          </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                value={inviteEmail}
-                onChange={(e) => setInviteEmail(e.target.value)}
-                placeholder="admin@example.com"
-              />
-            </div>
-            {inviteLink && (
-              <div className="text-sm text-muted-foreground break-all">
-                Invite Link: <a href={inviteLink}>{inviteLink}</a>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Button onClick={handleGenerateInvite}>Generate Invite Link</Button>
-          </CardFooter>
-        </Card>
-
-        {/* Leave Farm */}
-        <Card className="w-full sm:w-[320px] flex-1 min-w-[260px]">
-          <CardHeader><CardTitle>Leave Farm</CardTitle></CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Leaving the farm will remove you from all farm activities.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button
-              variant="destructive"
-              onClick={async () => {
-                // Get current farmId and userId
-                const currentUserId = auth.currentUser?.uid as string;
-                const userDocRef = doc(db, "users", currentUserId);
-                const userDocSnap = await getDoc(userDocRef);
-                const farmId = userDocSnap.data()?.currentFarm;
-                if (farmId && currentUserId) {
-                  await handleLeaveFarm(farmId, currentUserId);
-                }
-              }}
-            >
-              Leave Farm
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-
-      {/* Status Message */}
-      {status && <p className="text-sm text-muted-foreground">{status}</p>}
-
-      {/* Delete Farm Modal */}
-          <Modal isOpen={isModalOpen} placement="top-center" onClose={onCloseModal}>
+    {/* Delete Farm Modal */}
+    <Modal isOpen={isModalOpen} placement="top-center" onClose={onCloseModal}>
       <ModalContent>
         {() => (
           <>
-            <ModalHeader className="text-center">
-            </ModalHeader>
-            <ModalBody className="flex flex-col gap-4">
-              <p className="text-flex font-bold">
+            <ModalHeader className="text-center">Delete Farm</ModalHeader>
+            <ModalBody className="space-y-4">
+              <p className="font-semibold">
                 Are you sure you want to delete{" "}
-                <span className="font-bold text-red-500">
-                  {farmProfile.farmName}
-                </span>
-                ?
+                <span className="text-red-500">{farmProfile.farmName}</span>?
               </p>
               <p className="text-sm text-gray-600">
-                This action cannot be undone. Please type the farm name exactly to confirm deletion of farm :
+                You are deleting the farm and all associated data, including:
+                <ul className="list-disc pl-5">
+                  <li>All animals and their records</li>
+                  <li>All farm metadata</li>
+                  <li>All associated users' references to this farm</li>
+                </ul>
+              </p>
+              <p className="text-sm text-gray-600">
+                This action <strong> cannot be undone</strong>. Please type the farm name exactly to confirm this action:
               </p>
               <Input
                 id="confirmation"
@@ -594,11 +616,9 @@ const handleDeleteFarm = async () => {
               />
               <Button
                 className="w-full"
-                variant={"destructive"}
+                variant="destructive"
                 disabled={!isMatch}
-                onClick={() => {
-                  handleDeleteFarm();
-                }}
+                onClick={handleDeleteFarm}
               >
                 Delete Farm
               </Button>
@@ -608,6 +628,6 @@ const handleDeleteFarm = async () => {
         )}
       </ModalContent>
     </Modal>
-    </div>
-  );
+  </div>
+);
 }

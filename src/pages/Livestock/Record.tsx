@@ -109,6 +109,10 @@ function Record() {
       const farmId = farmData.data()?.currentFarm;
       const recordId = today;
       const recordRef = doc(db, "farms", farmId, "animals", animalId, "records", recordId);
+      await setDoc(doc(db, "farms", farmId, "animals", animalId), {
+        lastUpdated: serverTimestamp(),
+      }, { merge: true });
+
 
       await setDoc(recordRef, {
         date: Timestamp.fromDate(new Date(today)),

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { add, format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "lucide-react"
-import { db, auth } from "../../lib/firebase";
+import { db, auth } from "../../../lib/firebase";
 import { doc, getDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -305,6 +305,7 @@ const EditAnimal = () => {
   const [type, setType] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<string>("");
   const [breeds, setBreeds] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false); // State for modal open/close
 
@@ -320,7 +321,7 @@ const EditAnimal = () => {
         const farmId = farmData.data()?.currentFarm;
 
         // Fetch breeds from Firestore (farm/information/breeds collection)
-        const breedsCollection = collection(db, "farm", "farm-001", "meta", "information", "breeds");
+        const breedsCollection = collection(db, "farms", farmId, "meta", "information", "breeds");
         const breedsSnapshot = await getDocs(breedsCollection);
         const breedList = breedsSnapshot.docs.map(doc => doc.data().name); // Assuming breed name is stored in the "name" field
         setBreeds(breedList); // Set the breeds state
@@ -336,6 +337,7 @@ const EditAnimal = () => {
           setDob(animalData?.dob || "");
           setNotes(animalData?.notes || "");
           setType(animalData?.type || "");
+          setStatus(animalData?.status || "");
         } else {
           console.error("No such animal document found!");
         }
@@ -369,10 +371,13 @@ const EditAnimal = () => {
     }
 
     try {
-      const animalDocRef = doc(db, "animals", animalId as string);
+      const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+      const farmId = farmData.data()?.currentFarm;
+      const animalDocRef = doc(db, "farms", farmId, "animals", animalId as string);
       await updateDoc(animalDocRef, {
         name,
         breed,
+        status,
         dob,
         notes,
         type,
@@ -519,6 +524,26 @@ const EditAnimal = () => {
                     />
                   </PopoverContent>
                 </Popover>
+              </div>
+
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Healthy">
+                      <span className="text-sm">Healthy</span>
+                    </SelectItem>
+                    <SelectItem value="Sick">
+                      <span className="text-sm">Sick</span>
+                    </SelectItem>
+                    <SelectItem value="Injured">
+                      <span className="text-sm">Injured</span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1">

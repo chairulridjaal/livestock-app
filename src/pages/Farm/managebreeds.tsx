@@ -7,13 +7,6 @@ import {
   deleteDoc,
   doc,
 } from "firebase/firestore";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -73,64 +66,51 @@ export default function ManageBreeds() {
   }, []);
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage Breeds</CardTitle>
-        </CardHeader>
+    <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
+      <h2 className="text-lg font-semibold">Manage Breeds</h2>
 
-        <CardContent className="space-y-4">
-          {loading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (
-            <>
-              {breeds.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  No breeds added yet.
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {breeds.map((breed) => (
-                    <li
-                      key={breed.id}
-                      className="flex justify-between items-center border p-2 rounded-md"
-                    >
-                      <span>{breed.name}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteBreed(breed.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
+      {loading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      ) : breeds.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No breeds added yet.</p>
+      ) : (
+        <ul className="space-y-2">
+          {breeds.map((breed) => (
+            <li
+              key={breed.id}
+              className="flex justify-between items-center border rounded px-3 py-2"
+            >
+              <span>{breed.name}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDeleteBreed(breed.id)}
+              >
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
 
-          <div className="space-y-2 pt-4">
-            <Label htmlFor="newBreed">Add New Breed</Label>
-            <Input
-              id="newBreed"
-              placeholder="e.g. Holstein"
-              value={newBreed}
-              onChange={(e) => setNewBreed(e.target.value)}
-            />
-            <Button onClick={handleAddBreed} disabled={!newBreed.trim()}>
-              Add Breed
-            </Button>
-          </div>
-        </CardContent>
-
-        <CardFooter>
-          <p className="text-sm text-muted-foreground">{status}</p>
-        </CardFooter>
-      </Card>
+      <div className="space-y-2">
+        <Label htmlFor="newBreed">Add New Breed</Label>
+        <div className="flex gap-2">
+          <Input
+            id="newBreed"
+            placeholder="e.g. Holstein"
+            value={newBreed}
+            onChange={(e) => setNewBreed(e.target.value)}
+          />
+          <Button onClick={handleAddBreed} disabled={!newBreed.trim()}>
+            Add
+          </Button>
+        </div>
+        <p className="text-sm text-muted-foreground">{status}</p>
+      </div>
     </div>
   );
 }
