@@ -57,6 +57,12 @@ import {
   ModalFooter,
   useDisclosure,
  } from "@heroui/react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { AnimalHealthDashboard } from "@/components/Health/AnimalHealthDashboard"; // Corrected import path
+import { LogHealthEventForm } from "@/components/Health/LogHealthEventForm"; // Corrected import path
+import { LogVaccinationForm } from "@/components/Health/LogVaccinationForm"; // Corrected import path
+
 
 export type Records = {
   id: string
@@ -308,6 +314,10 @@ const EditAnimal = () => {
   const [status, setStatus] = useState<string>("");
   const [breeds, setBreeds] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState(false); // State for modal open/close
+  const [healthDashboardKey, setHealthDashboardKey] = useState(0);
+  const [currentFarmId, setCurrentFarmId] = useState<string | null>(null);
+
+  const refreshHealthDashboard = () => setHealthDashboardKey(prevKey => prevKey + 1);
 
   useEffect(() => {
     const fetchAnimalData = async () => {
@@ -317,8 +327,9 @@ const EditAnimal = () => {
       }
 
       try {
-        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
-        const farmId = farmData.data()?.currentFarm;
+        const userData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = userData.data()?.currentFarm;
+        setCurrentFarmId(farmId); // Set currentFarmId state
 
         // Fetch breeds from Firestore (farm/information/breeds collection)
         const breedsCollection = collection(db, "farms", farmId, "meta", "information", "breeds");
@@ -600,16 +611,78 @@ const EditAnimal = () => {
 
         <Card className="flex-1/2 lg:w-2/3 mt-6 lg:mt-0">
           <CardHeader>
-            <CardTitle>Animal Health Records</CardTitle>
+            <CardTitle>Animal Records</CardTitle>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div>Loading health records...</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <RecordsTable data={records} animalId={animalId as string} navigate={navigate} />
-              </div>
-            )}
+            <Tabs defaultValue="general_records">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="general_records">General Records</TabsTrigger>
+                <TabsTrigger value="detailed_health">Health & Vaccinations</TabsTrigger>
+              </TabsList>
+              <TabsContent value="general_records">
+                {loading ? (
+                  <div>Loading general records...</div>
+                ) : (
+                  <div className="overflow-x-auto mt-4">
+                    <RecordsTable data={records} animalId={animalId as string} navigate={navigate} />
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="detailed_health">
+                {animalId && currentFarmId ? (
+                  <>
+                    <div className="mt-4 mb-4 flex space-x-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline">Log New Health Event</Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>Log New Health Event</DialogTitle>
+                            <DialogDescription>Record a new health observation, illness, or treatment.</DialogDescription>
+                          </DialogHeader>
+                          <LogHealthEventForm
+                            animalId={animalId}
+                            farmId={currentFarmId}
+                            onSaveSuccess={() => {
+                              refreshHealthDashboard();
+                              // Consider adding a DialogClose mechanism or ensuring form can close itself.
+                              // For now, assuming user clicks outside or form handles it.
+                            }}
+                          />
+                        </DialogContent>
+                      </Dialog>
+
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline">Log New Vaccination</Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>Log New Vaccination Record</DialogTitle>
+                            <DialogDescription>Record a new vaccination administered to the animal.</DialogDescription>
+                          </DialogHeader>
+                          <LogVaccinationForm
+                            animalId={animalId}
+                            farmId={currentFarmId}
+                            onSaveSuccess={() => {
+                              refreshHealthDashboard();
+                            }}
+                          />
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                    <AnimalHealthDashboard
+                      animalId={animalId}
+                      farmId={currentFarmId}
+                      key={healthDashboardKey}
+                    />
+                  </>
+                ) : (
+                  <div className="mt-4">Loading animal data or missing ID...</div>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
