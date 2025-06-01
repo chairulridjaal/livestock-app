@@ -8,7 +8,6 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -97,14 +96,13 @@ export function LogHealthEventForm({ animalId, farmId, onSaveSuccess }: LogHealt
           render={({ field }) => (
             <FormItem>
               <FormLabel>Event Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select an event type" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">Select an event type</SelectItem> {/* Placeholder Item */}
                   <SelectItem value="Illness">Illness</SelectItem>
                   <SelectItem value="Injury">Injury</SelectItem>
                   <SelectItem value="Observation">Observation</SelectItem>
@@ -113,7 +111,6 @@ export function LogHealthEventForm({ animalId, farmId, onSaveSuccess }: LogHealt
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
-              <FormMessage />
             </FormItem>
           )}
         />

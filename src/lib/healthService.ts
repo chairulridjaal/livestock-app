@@ -1,4 +1,4 @@
-import { db } from "./firebase"; // Assuming firebase.ts is in the same lib folder
+import { db, auth } from "./firebase"; // Assuming firebase.ts is in the same lib folder
 import {
   collection,
   addDoc,
@@ -67,7 +67,9 @@ export interface VaccinationRecord extends VaccinationRecordData {
  */
 export async function saveHealthEvent(eventData: HealthEventData): Promise<string> {
   try {
-    const docRef = await addDoc(collection(db, "health_events"), {
+    const farmId = eventData.farmId || (await getDoc(doc(db, "users", auth.currentUser?.uid as string))).data()?.currentFarm;
+    const animalId = eventData.animalId;
+    const docRef = await addDoc(collection(db, "farms", farmId, "animals", animalId, "health_events"), {
       ...eventData,
       eventDate: Timestamp.fromDate(new Date(eventData.eventDate as Date)),
       createdAt: serverTimestamp(),
@@ -87,7 +89,9 @@ export async function saveHealthEvent(eventData: HealthEventData): Promise<strin
  */
 export async function saveVaccinationRecord(recordData: VaccinationRecordData): Promise<string> {
   try {
-    const docRef = await addDoc(collection(db, "vaccination_records"), {
+    const farmId = recordData.farmId || (await getDoc(doc(db, "users", auth.currentUser?.uid as string))).data()?.currentFarm;
+    const animalId = recordData.animalId;
+    const docRef = await addDoc(collection(db, "farms", farmId, "animals", animalId, "vaccination_records"), {
       ...recordData,
       vaccinationDate: Timestamp.fromDate(new Date(recordData.vaccinationDate as Date)),
       nextDueDate: recordData.nextDueDate ? Timestamp.fromDate(new Date(recordData.nextDueDate as Date)) : null,
@@ -112,16 +116,16 @@ export async function saveVaccinationRecord(recordData: VaccinationRecordData): 
 export async function getHealthEvents(animalId: string, farmId: string): Promise<HealthEvent[]> {
   try {
     const q = query(
-      collection(db, "health_events"),
-      where("animalId", "==", animalId),
-      where("farmId", "==", farmId),
+      collection(db, "farms", farmId, "animals", animalId, "health_events"),
       orderBy("eventDate", "desc")
     );
+    console.log("Fetching health events for animal:", animalId, "on farm:", farmId);
     const querySnapshot = await getDocs(q);
     const events: HealthEvent[] = [];
     querySnapshot.forEach((doc) => {
       events.push({ id: doc.id, ...doc.data() } as HealthEvent);
     });
+    console.log("Fetched health events: ", events);
     return events;
   } catch (error) {
     console.error("Error fetching health events: ", error);
@@ -138,11 +142,10 @@ export async function getHealthEvents(animalId: string, farmId: string): Promise
 export async function getVaccinationRecords(animalId: string, farmId: string): Promise<VaccinationRecord[]> {
   try {
     const q = query(
-      collection(db, "vaccination_records"),
-      where("animalId", "==", animalId),
-      where("farmId", "==", farmId),
+      collection(db, "farms", farmId, "animals", animalId, "vaccination_records"),
       orderBy("vaccinationDate", "desc")
     );
+    console.log("Fetching vaccination records for animal:", animalId, "on farm:", farmId);
     const querySnapshot = await getDocs(q);
     const records: VaccinationRecord[] = [];
     querySnapshot.forEach((doc) => {
