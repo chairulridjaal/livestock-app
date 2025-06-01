@@ -9,7 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -31,7 +30,7 @@ const vaccinationFormSchema = z.object({
   batchNumber: z.string().optional(),
   dosage: z.string().optional(),
   nextDueDate: z.date().optional().nullable(),
-  isBooster: z.boolean().default(false),
+  isBooster: z.boolean(),
   notes: z.string().optional(),
 });
 
@@ -70,7 +69,7 @@ export function LogVaccinationForm({ animalId, farmId, onSaveSuccess }: LogVacci
     try {
       const recordId = await saveVaccinationRecord(recordData);
       toast.success("Vaccination record saved successfully!");
-      form.reset(); // Clear the form
+      form.reset(); 
       if (onSaveSuccess) {
         onSaveSuccess(recordId);
       }
@@ -82,18 +81,18 @@ export function LogVaccinationForm({ animalId, farmId, onSaveSuccess }: LogVacci
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
         <FormField
           control={form.control}
           name="vaccineName"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Vaccine Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter vaccine name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+        <FormItem>
+          <FormLabel>Vaccine Name</FormLabel>
+          <FormControl>
+            <Input placeholder="Enter vaccine name" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
           )}
         />
 
@@ -101,38 +100,38 @@ export function LogVaccinationForm({ animalId, farmId, onSaveSuccess }: LogVacci
           control={form.control}
           name="vaccinationDate"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Vaccination Date</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-[240px] pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
+        <FormItem className="flex flex-col">
+          <FormLabel>Vaccination Date</FormLabel>
+          <Popover>
+            <PopoverTrigger asChild>
+          <FormControl>
+            <Button
+              variant={"outline"}
+              className={cn(
+            "w-[240px] pl-3 text-left font-normal",
+            !field.value && "text-muted-foreground"
+              )}
+            >
+              {field.value ? (
+            format(field.value, "PPP")
+              ) : (
+            <span>Pick a date</span>
+              )}
+              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+            </Button>
+          </FormControl>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={field.value ?? undefined}
+            onSelect={field.onChange}
+            initialFocus
+          />
+            </PopoverContent>
+          </Popover>
+          <FormMessage />
+        </FormItem>
           )}
         />
 
@@ -140,13 +139,13 @@ export function LogVaccinationForm({ animalId, farmId, onSaveSuccess }: LogVacci
           control={form.control}
           name="administeredBy"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Administered By</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter who administered the vaccine" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+        <FormItem>
+          <FormLabel>Administered By</FormLabel>
+          <FormControl>
+            <Input placeholder="Enter who administered the vaccine" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
           )}
         />
 
@@ -154,13 +153,13 @@ export function LogVaccinationForm({ animalId, farmId, onSaveSuccess }: LogVacci
           control={form.control}
           name="batchNumber"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Batch Number</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter batch number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+        <FormItem>
+          <FormLabel>Batch Number</FormLabel>
+          <FormControl>
+            <Input placeholder="Enter batch number" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
           )}
         />
 
@@ -206,7 +205,7 @@ export function LogVaccinationForm({ animalId, farmId, onSaveSuccess }: LogVacci
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value}
+                    selected={field.value ?? undefined}
                     onSelect={field.onChange}
                     initialFocus
                   />

@@ -6,9 +6,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { auth, googleProvider } from "../lib/firebase"
+import { db, auth, googleProvider } from "../lib/firebase"
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth"
-
+import { doc, getDoc, setDoc } from "firebase/firestore"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -75,7 +75,19 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 
   async function handleGoogleLogin() {
     try {
-      await signInWithPopup(auth, googleProvider)
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      const userDocRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userDocRef);
+
+      if (!docSnap.exists()) {
+        await setDoc(userDocRef, {
+          name: user.displayName,
+          email: user.email,
+          farms: [],
+        });
+      }
       toast.success("Logged in with Google!")
       const timer = setInterval(() => {
         setCountdown((prev) => {

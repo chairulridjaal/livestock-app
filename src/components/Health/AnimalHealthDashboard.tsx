@@ -19,7 +19,6 @@ import {
   getVaccinationRecords,
   HealthEvent, // Assuming these are exported from healthService or a types file
   VaccinationRecord, // Assuming these are exported from healthService or a types file
-  HealthEvent, // Explicitly import HealthEvent if not already
 } from "@/lib/healthService";
 import { Skeleton } from "@/components/ui/skeleton"; // For loading state
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // For error state
@@ -166,7 +165,7 @@ export function AnimalHealthDashboard({
         </TabsContent>
 
         <TabsContent value="vaccination-records">
-          <div className="rounded-md border">
+          <div className="rounded-lg border">
             <Table>
               <TableHeader>
                 <TableRow>
