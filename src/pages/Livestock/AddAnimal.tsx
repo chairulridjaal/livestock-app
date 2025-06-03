@@ -189,6 +189,8 @@ function AddAnimal() {
                 <SelectContent>
                   <SelectItem value="Beef Cattle">Beef Cattle (Sapi Potong)</SelectItem>
                   <SelectItem value="Dairy Cattle">Dairy Cattle (Sapi Perah)</SelectItem>
+                  <SelectItem value="Goat">Goat (Kambing)</SelectItem>
+                  <SelectItem value="Sheep">Sheep (Domba)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

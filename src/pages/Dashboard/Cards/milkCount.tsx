@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, limit, getDocs, getDoc, doc} from "firebase/firestore";
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,29 +13,52 @@ const MilkCount = () => {
   useEffect(() => {
     const fetchMilkStats = async () => {
       try {
-        // Fetch the current farm ID from the user's data
-        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
-        const farmsId = farmData.data()?.currentFarm;
+        const userDoc = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = userDoc.data()?.currentFarm;
 
-        // Fetch milk stats from the records
-        const recordsRef = collection(db, "farms", farmsId, "meta", "stats", "records");
-        const q = query(recordsRef, orderBy("timestamp", "desc"), limit(2)); // Order by timestamp for the last 2 records
-        const querySnapshot = await getDocs(q);
+        const animalsSnapshot = await getDocs(collection(db, "farms", farmId, "animals"));
+        const animalIds = animalsSnapshot.docs.map((doc) => doc.id);
 
-        const data = querySnapshot.docs.map((doc) => doc.data());
-            
-        if (data.length >= 1) {
-          const current = data[0]?.totalMilk || 0;
-          setTotalMilk(current);
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(now.getDate() - 30);
 
-          if (data.length === 2) {
-            const previous = data[1]?.totalMilk || 1;
-            const diff = current - previous;
-            const percentChange = ((diff / previous) * 100).toFixed(1);
-            setTrendPercent(Math.abs(+percentChange));
-            setIsUp(diff >= 0);
-          }
+        const prevThirtyDaysAgo = new Date(thirtyDaysAgo);
+        prevThirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        let totalMilkSum = 0;
+        let prevMilkSum = 0;
+
+        for (const animalId of animalIds) {
+          const recordsSnapshot = await getDocs(
+            collection(db, "farms", farmId, "animals", animalId, "records")
+          );
+
+          recordsSnapshot.forEach((recordDoc) => {
+            const data = recordDoc.data();
+            const recordDate = new Date(recordDoc.id); // Assuming ID is a date string like "2025-05-30"
+            const milk = typeof data.milk === "number" ? data.milk : 0;
+
+            if (recordDate >= thirtyDaysAgo) {
+              totalMilkSum += milk;
+            } else if (recordDate >= prevThirtyDaysAgo && recordDate < thirtyDaysAgo) {
+              prevMilkSum += milk;
+            }
+          });
         }
+
+        setTotalMilk(totalMilkSum);
+
+        if (prevMilkSum > 0) {
+          const diff = totalMilkSum - prevMilkSum;
+          const percentChange = ((diff / prevMilkSum) * 100);
+          setTrendPercent(Math.abs(+percentChange.toFixed(1)));
+          setIsUp(diff >= 0);
+        } else {
+          setTrendPercent(0);
+          setIsUp(true);
+        }
+
       } catch (error) {
         console.error("Error fetching milk stats:", error);
       }

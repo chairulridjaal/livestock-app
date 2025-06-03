@@ -5,6 +5,7 @@ import { collection, getDocs, getDoc, doc, query, orderBy, limit } from "firebas
 interface Animal {
   id: string;
   name: string;
+  type: string; // optional
   breed: string;
   dob: any;
   status: string[];

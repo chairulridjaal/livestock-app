@@ -17,6 +17,7 @@ import {
 export type Animal = {
   id: string
   name: string
+  type: string
   breed: string
   dob?: Timestamp
   status?: string[]
@@ -51,6 +52,26 @@ export const columns: ColumnDef<Animal>[] = [
         {row.getValue("name")}
       </div>
     ),
+  },
+  {
+    accessorKey: "type",
+    header: ({ column }) => (
+      <div
+        className="flex items-center justify-center space-x-2 text-center"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        <span>Type</span>
+        <ArrowUpDown className="h-4 w-4" />
+      </div>
+    ),
+    cell: ({ row }) => {
+        const value = row.getValue("type") as string | undefined;
+        return (
+          <div className="text-center">
+            {value ? value : "-"}
+          </div>
+        );
+    },
   },
   {
     accessorKey: "breed",

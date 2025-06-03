@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, limit, getDocs, getDoc, doc } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, getDoc, doc } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,38 +14,56 @@ const FeedCount = () => {
   useEffect(() => {
     const fetchFeedStats = async () => {
       try {
-        const farmData = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
-        const farmId = farmData.data()?.currentFarm;
-        const recordsRef = collection(db, "farms", farmId, "meta", "stats", "records");
-        const currentFeedRef = doc(db,"farms", farmId, "meta", "stats");
+        // Get current farm ID
+        const userDoc = await getDoc(doc(db, "users", auth.currentUser?.uid as string));
+        const farmId = userDoc.data()?.currentFarm;
 
-        const snapshot = await getDoc(currentFeedRef);
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          setTotalCurrentFeed(data.totalFeed || 0);
+        // Get stock
+        const stockDoc = await getDoc(doc(db, "farms", farmId, "meta", "stats"));
+        if (stockDoc.exists()) {
+          setTotalCurrentFeed(stockDoc.data()?.totalFeed || 0);
+        }
+
+        const animalsRef = collection(db, "farms", farmId, "animals");
+        const animalsSnapshot = await getDocs(animalsRef);
+        const animalIds = animalsSnapshot.docs.map(doc => doc.id);
+
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const prevStart = new Date(thirtyDaysAgo.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const prevEnd = thirtyDaysAgo;
+
+        let currentFeedSum = 0;
+        let previousFeedSum = 0;
+
+        for (const animalId of animalIds) {
+          const snapshot = await getDocs(collection(db, "farms", farmId, "animals", animalId, "records"));
+
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            const recordDate = new Date(doc.id);
+            const feedAmount = typeof data.feed === "number" ? data.feed : 0;
+
+            if (recordDate >= thirtyDaysAgo) {
+              currentFeedSum += feedAmount;
+            } else if (recordDate >= prevStart && recordDate < prevEnd) {
+              previousFeedSum += feedAmount;
+            }
+          });
+        }
+
+        setTotalFeed(currentFeedSum);
+
+        if (previousFeedSum > 0) {
+          const diff = currentFeedSum - previousFeedSum;
+          const percentChange = ((diff / previousFeedSum) * 100).toFixed(1);
+          setTrendPercent(Math.abs(+percentChange));
+          setIsUp(diff >= 0);
         } else {
-          console.log("No such document!");
+          setTrendPercent(0);
+          setIsUp(true);
         }
 
-        // Query to fetch the two most recent records (current and previous)
-        const q = query(recordsRef, orderBy("timestamp", "desc"), limit(2));
-        const querySnapshot = await getDocs(q);
-
-        const data = querySnapshot.docs.map((doc) => doc.data());
-
-        if (data.length >= 1) {
-          const current = data[0]?.totalFeed || 0;
-          setTotalFeed(current);
-
-          if (data.length === 2) {
-            const previous = data[1]?.totalFeed || 0;
-
-            const diff = current - previous;
-            const percentChange = previous !== 0 ? ((diff / previous) * 100).toFixed(1) : 0;
-            setTrendPercent(Math.abs(+percentChange));
-            setIsUp(diff >= 0);
-          }
-        }
       } catch (error) {
         console.error("Error fetching feed stats:", error);
       }
@@ -57,7 +75,7 @@ const FeedCount = () => {
   return (
     <Card className="@container/card">
       <CardHeader className="relative">
-        <CardDescription>Total Feed</CardDescription>
+        <CardDescription>Total Feed Given</CardDescription>
         <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
           {totalFeed} Kg
         </CardTitle>

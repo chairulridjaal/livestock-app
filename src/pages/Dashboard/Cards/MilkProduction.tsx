@@ -73,7 +73,7 @@ const MilkProductionChart = () => {
       height: 300,
       toolbar: { show: false },
       zoom: { enabled: false },
-      background: 'transparent', // important!
+      background: 'transparent', 
     },
     theme: {
       mode: theme === "dark" ? "dark" : "light",
