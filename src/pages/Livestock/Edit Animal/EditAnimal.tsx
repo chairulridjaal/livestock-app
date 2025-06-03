@@ -207,7 +207,7 @@ export const createColumns = (navigate: ReturnType<typeof useNavigate>, animalId
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate(`/livestock/edit/${animalId}/${recordId}`)}>Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(`/livestock/animals/${animalId}/${recordId}`)}>Edit</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setIsOpen(true)}>Delete</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
