@@ -220,7 +220,7 @@ export function LogVaccinationForm({ animalId, farmId, onSaveSuccess }: LogVacci
           control={form.control}
           name="isBooster"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-1">
               <FormControl>
                 <Checkbox
                   checked={field.value}

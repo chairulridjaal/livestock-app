@@ -98,7 +98,7 @@ export const columns: ColumnDef<Animal>[] = [
         const value = row.getValue("status") as string[] | undefined;
         return (
           <div className="text-center">
-            {value?.length ? value.join(", ") : "-"}
+            {value?.length ? Array.isArray(value) ? value.join(", ") : "-" : "-"}
           </div>
         );
     },

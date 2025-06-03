@@ -75,6 +75,24 @@ export async function saveHealthEvent(eventData: HealthEventData): Promise<strin
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+
+    const animalDocRef = doc(db, "farms", farmId, "animals", animalId);
+    const animalDocSnap = await getDoc(animalDocRef);
+    const prevStatus = (animalDocSnap.data()?.status ?? []) as string[];
+
+    if (eventData.eventType === "Injury" && !prevStatus.includes("Injured")) {
+      await updateDoc(animalDocRef, {
+        status: [...prevStatus, "Injured"],
+        notes: eventData.notes ? eventData.notes : `Injury noted on ${eventData.eventDate}`,
+      });
+    }
+
+    if (eventData.eventType === "Illness" && !prevStatus.includes("Sick")) {
+      await updateDoc(animalDocRef, {
+        status: [...prevStatus, "Sick"],
+        notes: eventData.notes ? eventData.notes : `Illness noted on ${eventData.eventDate}`,
+      });
+    }
     return docRef.id;
   } catch (error) {
     console.error("Error saving health event: ", error);
@@ -98,6 +116,22 @@ export async function saveVaccinationRecord(recordData: VaccinationRecordData): 
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+
+    const animalDocRef = doc(db, "farms", farmId, "animals", animalId);
+    // Fetch existing vaccinationRecords array or initialize as empty
+    const animalDocSnap = await getDoc(animalDocRef);
+    const prevRecords = (animalDocSnap.data()?.vaccinationRecords ?? []) as { name: string; date: Timestamp }[];
+
+    await updateDoc(animalDocRef, {
+      vaccinationRecords: [
+      ...prevRecords,
+      {
+        name: recordData.vaccineName,
+        date: Timestamp.fromDate(new Date(recordData.vaccinationDate as Date)),
+      },
+      ],
+    });
+
     return docRef.id;
   } catch (error) {
     console.error("Error saving vaccination record: ", error);

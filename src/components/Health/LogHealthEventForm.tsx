@@ -1,5 +1,5 @@
 "use client";
-
+import { Camera, Image as ImageIcon } from 'lucide-react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -71,7 +71,7 @@ export function LogHealthEventForm({ animalId, farmId, onSaveSuccess }: LogHealt
       ...data,
       animalId,
       farmId,
-      eventDate: data.eventDate, // Already a Date object from the form
+      eventDate: data.eventDate, 
     };
 
     try {
@@ -81,6 +81,7 @@ export function LogHealthEventForm({ animalId, farmId, onSaveSuccess }: LogHealt
       if (onSaveSuccess) {
         onSaveSuccess(eventId);
       }
+
     } catch (error) {
       console.error("Failed to save health event:", error);
       toast.error("Failed to save health event. Please try again.");
@@ -89,7 +90,7 @@ export function LogHealthEventForm({ animalId, farmId, onSaveSuccess }: LogHealt
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
         <FormField
           control={form.control}
           name="eventType"
@@ -232,6 +233,36 @@ export function LogHealthEventForm({ animalId, farmId, onSaveSuccess }: LogHealt
               <FormLabel>Veterinarian Consulted</FormLabel>
               <FormControl>
                 <Input placeholder="Enter vet's name or clinic" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="photo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Upload Photo</FormLabel>
+              <FormControl>
+                <div className="flex items-center space-x-4">
+                  <label
+                    htmlFor="photo-upload"
+                    className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 p-3 text-gray-600 hover:bg-gray-100 transition"
+                  >
+                    <Camera className="w-5 h-5" />
+                    <span className="text-sm font-medium">Take/Upload Photo</span>
+                  </label>
+                  <input
+                    id="photo-upload"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => field.onChange(e.target.files?.[0])}
+                    className="hidden"
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -399,7 +399,7 @@ const EditAnimal = () => {
         description: `Animal ${name} has been updated successfully.`,
         color: "success",
       });
-      navigate("/livestock/edit/" + animalId);
+      navigate("/livestock/animals/" + animalId);
     } catch (error) {
       console.error("Error updating animal:", error);
       addToast({
@@ -636,7 +636,7 @@ const EditAnimal = () => {
                         <DialogTrigger asChild>
                           <Button variant="outline">Log New Health Event</Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
+                        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto p-6">
                           <DialogHeader>
                             <DialogTitle>Log New Health Event</DialogTitle>
                             <DialogDescription>Record a new health observation, illness, or treatment.</DialogDescription>
@@ -657,7 +657,7 @@ const EditAnimal = () => {
                         <DialogTrigger asChild>
                           <Button variant="outline">Log New Vaccination</Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
+                        <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto p-6">
                           <DialogHeader>
                             <DialogTitle>Log New Vaccination Record</DialogTitle>
                             <DialogDescription>Record a new vaccination administered to the animal.</DialogDescription>
