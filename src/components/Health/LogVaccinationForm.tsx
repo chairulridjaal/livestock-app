@@ -81,7 +81,7 @@ export function LogVaccinationForm({ animalId, farmId, onSaveSuccess }: LogVacci
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-2">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="vaccineName"
@@ -220,14 +220,14 @@ export function LogVaccinationForm({ animalId, farmId, onSaveSuccess }: LogVacci
           control={form.control}
           name="isBooster"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
                 />
               </FormControl>
-              <div className="space-y-1 leading-none">
+              <div className="leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 <FormLabel>
                   Is this a booster?
                 </FormLabel>

@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, CameraIcon, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { saveHealthEvent, HealthEventData } from "@/lib/healthService"; // Import the service
 
@@ -54,7 +54,6 @@ export function LogHealthEventForm({ animalId, farmId, onSaveSuccess }: LogHealt
   const form = useForm<HealthEventFormValues>({
     resolver: zodResolver(healthEventFormSchema),
     defaultValues: {
-      // eventType: undefined, // Zod schema now requires a string, ensure a valid default or handle placeholder
       eventType: "",
       symptoms: "",
       diagnosis: "",
@@ -67,29 +66,31 @@ export function LogHealthEventForm({ animalId, farmId, onSaveSuccess }: LogHealt
   });
 
   async function handleSubmit(data: HealthEventFormValues) {
-    const eventData: HealthEventData = {
-      ...data,
-      animalId,
-      farmId,
-      eventDate: data.eventDate, // Already a Date object from the form
-    };
+  const eventData: HealthEventData = {
+    ...data,
+    animalId,
+    farmId,
+    eventDate: data.eventDate,
+  };
 
-    try {
-      const eventId = await saveHealthEvent(eventData);
-      toast.success("Health event saved successfully!");
-      form.reset(); // Clear the form
-      if (onSaveSuccess) {
-        onSaveSuccess(eventId);
-      }
-    } catch (error) {
-      console.error("Failed to save health event:", error);
-      toast.error("Failed to save health event. Please try again.");
+  try {
+
+    const eventId = await saveHealthEvent(eventData);
+    toast.success("Health event saved successfully!");
+    form.reset();
+    if (onSaveSuccess) {
+      onSaveSuccess(eventId);
     }
+  } catch (error) {
+    console.error("Failed to save health event:", error);
+    toast.error("Failed to save health event. Please try again.");
   }
+}
+
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="eventType"
@@ -232,6 +233,50 @@ export function LogHealthEventForm({ animalId, farmId, onSaveSuccess }: LogHealt
               <FormLabel>Veterinarian Consulted</FormLabel>
               <FormControl>
                 <Input placeholder="Enter vet's name or clinic" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="photo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Photo</FormLabel>
+              <FormControl>
+                <div className="relative w-full max-w-xs">
+                  <label
+                    htmlFor="photo-upload"
+                    className="flex items-center justify-center border border-dashed border-gray-400 rounded-xl h-40 cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
+                    {form.watch("photo") ? (
+                      <img
+                        src={URL.createObjectURL(form.watch("photo"))}
+                        alt="Preview"
+                        className="object-cover w-full h-full rounded-xl"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center text-gray-500">
+                        <CameraIcon className="w-8 h-8 mb-2" />
+                        <span className="text-sm">Tap to take or upload a photo</span>
+                      </div>
+                    )}
+                  </label>
+                  <input
+                    id="photo-upload"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        field.onChange(e.target.files[0]);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

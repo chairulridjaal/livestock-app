@@ -122,17 +122,25 @@ export default function FarmSettings() {
         const farmRef = doc(db, "farms", farmId, "meta", "information");
         const breedsRef = collection(db, "farms", farmId, "meta", "information", "breeds");
 
-        const adminsSnap = await getDocs(collection(db, "users"));
-        const adminsList = adminsSnap.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            name: data.name || "Unknown",
-            email: data.email || "No email",
-          };
+        // Get farm members
+        const memberIds = farmDoc.data()?.members || [];
+        if (Array.isArray(memberIds) && memberIds.length > 0) {
+          // Fetch user info for each member
+          const usersSnap = await getDocs(collection(db, "users"));
+          const adminsList = usersSnap.docs
+            .filter((doc) => memberIds.includes(doc.id))
+            .map((doc) => {
+              const data = doc.data();
+              return {
+          id: doc.id,
+          name: data.name || "Unknown",
+          email: data.email || "No email",
+              };
+            });
+          setAdmins(adminsList);
+        } else {
+          setAdmins([]);
         }
-        );
-        setAdmins(adminsList);
 
         const snap = await getDoc(farmRef);
         if (snap.exists()) {

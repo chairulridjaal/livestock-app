@@ -65,6 +65,7 @@ export default function manageStock() {
   }, []);
 
   return (
+    <div className="space-y-6 p-4">
     <Card>
       <CardHeader>
         <CardTitle>Stock Management</CardTitle>
@@ -110,5 +111,6 @@ export default function manageStock() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

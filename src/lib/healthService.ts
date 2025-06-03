@@ -14,6 +14,7 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
+import { sendSickCowAlert } from './resendService';
 
 // --- Interfaces for Data Types ---
 // Based on Zod schemas in the form components, adding ID and timestamps
@@ -75,6 +76,27 @@ export async function saveHealthEvent(eventData: HealthEventData): Promise<strin
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+
+    // Fetch the userRoles document to get veterinarian userIds
+    const userRolesDoc = await getDoc(doc(db, "farms", farmId, "meta", "information", "roles", "userRoles"));
+    const vetUserIds: string[] = userRolesDoc.data()?.veterinarian ?? [];
+
+    // Fetch emails for all veterinarian userIds
+    const vetEmails: string[] = [];
+    for (const vetUserId of vetUserIds) {
+      const userDoc = await getDoc(doc(db, "users", vetUserId));
+      const email = userDoc.data()?.email;
+      if (email) {
+      vetEmails.push(email);
+      }
+    }
+
+    console.log("Vet Emails: ", vetEmails);
+    if (vetEmails.length > 0) {
+      for (const email of vetEmails) {
+        await sendSickCowAlert(email, animalId, eventData.notes ?? '');
+      }
+    }
     return docRef.id;
   } catch (error) {
     console.error("Error saving health event: ", error);

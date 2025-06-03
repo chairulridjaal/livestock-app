@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect } from "react";
-import { GalleryVerticalEnd, Leaf, House, Tractor, Wheat} from "lucide-react";
+import { GalleryVerticalEnd, House, Tractor, Wheat} from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { SearchForm } from "@/components/layouts/search-form";
@@ -103,7 +103,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               id,
               name: farmSnap.exists() ? farmSnap.data().farmName || "Unnamed Farm" : `Unknown Farm (${id.slice(-4)})`,
               logo: GalleryVerticalEnd,
-              plan: farmSnap.exists() ? farmSnap.data().plan || "Free" : "Free",
+              plan: farmSnap.exists() ? farmSnap.data().plan || "Beta" : "Beta",
             });
           }
 
