@@ -191,4 +191,4 @@ This project is licensed under the MIT License. Feel free to fork and build your
 
 ---
 
-Made with 💙 by [Your Name/Organization/Kelompok 7](https://github.com/your-username).
+Made with 💙 by [Kelompok 7](https://github.com/chairulridjaal).
